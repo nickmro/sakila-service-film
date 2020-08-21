@@ -1,0 +1,8 @@
+# Binaries
+bin/
+
+# Env
+.env
+
+# Tests
+*.coverprofile
