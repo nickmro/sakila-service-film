@@ -82,6 +82,6 @@ ginkgo -r
 
 ## Coming Soon
 
-[ ] Health checker
-[ ] Rest API documentation
-[ ] Linter
+- [ ] Health checker
+- [ ] Rest API documentation
+- [ ] Linter
