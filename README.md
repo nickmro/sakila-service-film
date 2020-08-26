@@ -56,8 +56,8 @@ The graphQL documentation is available at endpoint `/graphql`.
 | MYSQL_USER     | The database user                               | string  | no       |              |
 | MYSQL_PASSWORD | The database password                           | string  | no       |              |
 | MYSQL_HOST     | The database host                               | string  | no       |              |
-| MYSQL_PORT     | The database port                               | string  | no       | 3306         |
-| MYSQL_NAME     | The database name                               | string  | no       | sakila       |
+| MYSQL_PORT     | The database port                               | string  | no       |              |
+| MYSQL_NAME     | The database name                               | string  | no       |              |
 | REDIS_URL      | The cache URL                                   | string  | no       |              |
 | REDIS_PASSWORD | The cache password                              | string  | no       |              |
 
