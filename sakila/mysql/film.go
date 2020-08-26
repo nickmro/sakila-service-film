@@ -8,7 +8,7 @@ import (
 
 // FilmDB is a connection to film database.
 type FilmDB struct {
-	*sql.DB
+	*DB
 }
 
 const (

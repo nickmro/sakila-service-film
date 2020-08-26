@@ -1,13 +1,10 @@
 package mysql
 
-import (
-	"database/sql"
-	"sakila/sakila-film-service/sakila"
-)
+import "sakila/sakila-film-service/sakila"
 
 // ActorDB is a mysql actor store.
 type ActorDB struct {
-	*sql.DB
+	*DB
 }
 
 const (

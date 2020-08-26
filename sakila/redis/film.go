@@ -12,7 +12,7 @@ import (
 
 // FilmCache is a Redis film cache.
 type FilmCache struct {
-	Cache *redis.Client
+	Client *Client
 }
 
 const (
@@ -27,7 +27,7 @@ func (c *FilmCache) GetFilm(id int) (*sakila.Film, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
 	defer cancel()
 
-	val, err := c.Cache.Get(ctx, filmCacheKey(id)).Result()
+	val, err := c.Client.Get(ctx, filmCacheKey(id)).Result()
 	if err == redis.Nil {
 		return nil, sakila.ErrorNotFound
 	} else if err != nil {
@@ -52,7 +52,7 @@ func (c *FilmCache) SetFilm(film *sakila.Film) error {
 		return err
 	}
 
-	return c.Cache.Set(ctx, filmCacheKey(film.FilmID), val, expirationDuration).Err()
+	return c.Client.Set(ctx, filmCacheKey(film.FilmID), val, expirationDuration).Err()
 }
 
 func filmCacheKey(id int) string {

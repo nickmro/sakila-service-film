@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"sakila/sakila-film-service/sakila/api"
 	"sakila/sakila-film-service/sakila/config"
 	"sakila/sakila-film-service/sakila/graphql"
+	"sakila/sakila-film-service/sakila/health"
 	"sakila/sakila-film-service/sakila/http"
 	"sakila/sakila-film-service/sakila/log"
 	"sakila/sakila-film-service/sakila/mysql"
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	logger.Info("Connecting to DB...")
-	db, err := sql.Open("mysql", env.GetMySQLURL())
+	db, err := mysql.Open(env.GetMySQLURL())
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	filmStore := &mysql.FilmDB{DB: db}
-	filmCache := &redis.FilmCache{Cache: cache}
+	filmCache := &redis.FilmCache{Client: cache}
 	actorStore := &mysql.ActorDB{DB: db}
 
 	filmService := &api.FilmService{
@@ -65,12 +65,30 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	filmHandler := http.NewFilmHandler(filmService)
-	graphqlHandler := http.NewGraphQLHandler(graphqlSchema)
+	logger.Info("Starting health checker...")
+	checker, err := health.NewChecker(&health.Checks{
+		DB: &health.Check{
+			Name:    "mysql",
+			Checker: db,
+		},
+		Cache: &health.Check{
+			Name:    "redis",
+			Checker: cache,
+		},
+	})
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	if err := checker.Start(); err != nil {
+		logger.Fatal(err)
+	}
 
 	router := http.NewRouter(logger)
-	router.Mount("/films", filmHandler)
-	router.Mount("/graphql", graphqlHandler)
+	router.Mount("/films", http.NewFilmHandler(filmService))
+	router.Mount("/graphql", graphql.NewHandler(graphqlSchema))
+	router.Mount("/healthz", health.NewHandler(checker))
+	router.Mount("/readyz", health.NewHandler(checker))
 
 	logger.Info("Starting server...")
 
