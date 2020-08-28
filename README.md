@@ -45,7 +45,9 @@ go build -o ./bin/serve -i ./cmd/serve
 
 ## Documentation
 
-The graphQL documentation is available at endpoint `/graphql`.
+The REST API documentation is provided by `swagger.yml`. It can be loaded into an API client such as [Postman](https://www.postman.com/) or [Insomnia](https://insomnia.rest/).
+
+The GraphQL schema and documentation may also be viewed by loading the schema into one of the API clients above.
 
 ## Environment Variables
 #### Runtime
@@ -82,5 +84,4 @@ ginkgo -r
 
 ## Coming Soon
 
-- [ ] Rest API documentation
 - [ ] Linter
