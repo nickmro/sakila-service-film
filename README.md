@@ -85,3 +85,5 @@ ginkgo -r
 ## Coming Soon
 
 - [ ] Linter
+- [ ] Docker
+- [ ] CI
