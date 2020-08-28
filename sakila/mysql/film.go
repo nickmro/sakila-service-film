@@ -2,6 +2,8 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"sakila/sakila-film-service/sakila"
 )
@@ -104,18 +106,23 @@ func (db *FilmDB) QueryFilms(params map[sakila.FilmQueryParam]interface{}) ([]*s
 
 func filmQueryForParams(params map[sakila.FilmQueryParam]interface{}) (query string, args []interface{}) {
 	query = filmsQuery
+	wheres := []string{}
 
 	if category, ok := params[sakila.FilmQueryParamCategory].(string); ok {
 		args = append(args, category)
 		query += `
 			INNER JOIN film_category ON film_category.film_id = film.film_id
-			INNER JOIN category ON category.category_id = film_category.category_id
-			WHERE category.name = ?`
+			INNER JOIN category ON category.category_id = film_category.category_id`
+		wheres = append(wheres, `category.name = ?`)
 	}
 
 	if after, ok := params[sakila.FilmQueryParamAfter].(int); ok {
 		args = append(args, after)
-		query += ` WHERE film.film_id > ?`
+		wheres = append(wheres, `film.film_id > ?`)
+	}
+
+	if len(wheres) > 0 {
+		query += fmt.Sprintf(` WHERE %s`, strings.Join(wheres, ` AND `))
 	}
 
 	query += ` ORDER BY film.film_id ASC`
