@@ -12,7 +12,7 @@ import (
 // RequestLog contains request information.
 type RequestLog struct {
 	Path         string `json:"path"`
-	Protocal     string `json:"protocol"`
+	Protocol     string `json:"protocol"`
 	RequestID    string `json:"request_id"`
 	ResponseTime int64  `json:"response_time"`
 	Size         int    `json:"size"`
@@ -30,7 +30,7 @@ func RequestLogger(logger sakila.Logger) func(http.Handler) http.Handler {
 			defer func() {
 				log := &RequestLog{
 					Path:         r.URL.Path,
-					Protocal:     r.Proto,
+					Protocol:     r.Proto,
 					RequestID:    middleware.GetReqID(r.Context()),
 					ResponseTime: time.Since(start).Milliseconds(),
 					Size:         wrap.BytesWritten(),

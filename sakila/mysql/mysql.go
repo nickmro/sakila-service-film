@@ -1,3 +1,4 @@
+// Package mysql handles operations on the MySQL database.
 package mysql
 
 import "database/sql"

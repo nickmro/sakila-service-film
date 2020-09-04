@@ -74,7 +74,9 @@ func (db *FilmDB) QueryFilms(params map[sakila.FilmQueryParam]interface{}) ([]*s
 
 	rows, err := db.DB.Query(query, args...)
 	if err != nil {
-		return films, err
+		return nil, err
+	} else if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	for rows.Next() {
@@ -110,14 +112,17 @@ func filmQueryForParams(params map[sakila.FilmQueryParam]interface{}) (query str
 
 	if category, ok := params[sakila.FilmQueryParamCategory].(string); ok {
 		args = append(args, category)
+
 		query += `
 			INNER JOIN film_category ON film_category.film_id = film.film_id
 			INNER JOIN category ON category.category_id = film_category.category_id`
+
 		wheres = append(wheres, `category.name = ?`)
 	}
 
 	if after, ok := params[sakila.FilmQueryParamAfter].(int); ok {
 		args = append(args, after)
+
 		wheres = append(wheres, `film.film_id > ?`)
 	}
 
@@ -129,6 +134,7 @@ func filmQueryForParams(params map[sakila.FilmQueryParam]interface{}) (query str
 
 	if first, ok := params[sakila.FilmQueryParamFirst].(int); ok {
 		args = append(args, first)
+
 		query += ` LIMIT ?`
 	}
 

@@ -65,7 +65,9 @@ func (w *Writer) Fatal(e error) {
 
 // Flush flushes the remaining logs in the writer.
 func (w *Writer) Flush() {
-	w.Sync()
+	if err := w.Sync(); err != nil {
+		w.Logger.Fatal(err.Error())
+	}
 }
 
 func joinArgs(a ...interface{}) string {
@@ -73,5 +75,6 @@ func joinArgs(a ...interface{}) string {
 	for i := range a {
 		s[i] = fmt.Sprintf("%v", a[i])
 	}
+
 	return strings.Join(s, " ")
 }

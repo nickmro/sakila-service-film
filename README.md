@@ -82,8 +82,14 @@ Then run:
 ginkgo -r
 ```
 
+## Lint
+
+To run the linter:
+```
+golangci-lint run
+```
+
 ## Coming Soon
 
-- [ ] Linter
 - [ ] Docker
 - [ ] CI

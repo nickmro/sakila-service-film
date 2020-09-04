@@ -43,6 +43,7 @@ func (s *FilmService) GetFilm(id int) (*sakila.Film, error) {
 
 	film.Actors = actors
 
+	//nolint:errcheck
 	go s.FilmCache.SetFilm(film)
 
 	return film, nil
@@ -66,6 +67,7 @@ func (s *FilmService) GetFilms(params map[sakila.FilmQueryParam]interface{}) ([]
 			s.Logger.Error(err)
 			return nil, NewError(sakila.ErrorInternal, "Internal error.")
 		}
+
 		film.Actors = actors
 	}
 

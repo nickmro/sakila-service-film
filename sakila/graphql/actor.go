@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	actorType     *graphql.Object
+	//nolint:gochecknoglobals
+	actorType *graphql.Object
+	//nolint:gochecknoglobals
 	actorTypeSync sync.Once
 )
 
@@ -68,5 +70,6 @@ func ActorType() *graphql.Object {
 			},
 		)
 	})
+
 	return actorType
 }

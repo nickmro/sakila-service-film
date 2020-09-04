@@ -16,5 +16,6 @@ func NewRouter(logger sakila.Logger) *chi.Mux {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.NewCompressor(flate.DefaultCompression).Handler)
 	r.Use(RequestLogger(logger))
+
 	return r
 }

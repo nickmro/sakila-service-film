@@ -33,9 +33,11 @@ var _ = Describe("Schema", func() {
 		BeforeEach(func() {
 			filmService.GetFilmFn = func(filmID int) (*sakila.Film, error) {
 				return &sakila.Film{
-					FilmID:             1,
-					Title:              "ACADEMY DINOSAUR",
-					Description:        stringP("A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies"),
+					FilmID: 1,
+					Title:  "ACADEMY DINOSAUR",
+					Description: stringP(
+						"A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies",
+					),
 					ReleaseYear:        intP(2006),
 					LanguageID:         1,
 					OriginalLanguageID: intP(1),
@@ -80,7 +82,9 @@ var _ = Describe("Schema", func() {
 			Expect(data.Film.FilmID).To(Equal(1))
 			Expect(data.Film.Title).To(Equal("ACADEMY DINOSAUR"))
 			Expect(data.Film.Description).ToNot(BeNil())
-			Expect(*data.Film.Description).To(Equal("A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies"))
+			Expect(*data.Film.Description).To(Equal(
+				"A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies",
+			))
 			Expect(data.Film.ReleaseYear).ToNot(BeNil())
 			Expect(*data.Film.ReleaseYear).To(Equal(2006))
 			Expect(data.Film.LanguageID).To(Equal(1))
@@ -105,9 +109,11 @@ var _ = Describe("Schema", func() {
 			filmService.GetFilmsFn = func(_ map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
 				return []*sakila.Film{
 					{
-						FilmID:             1,
-						Title:              "ACADEMY DINOSAUR",
-						Description:        stringP("A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies"),
+						FilmID: 1,
+						Title:  "ACADEMY DINOSAUR",
+						Description: stringP(
+							"A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies",
+						),
 						ReleaseYear:        intP(2006),
 						LanguageID:         1,
 						OriginalLanguageID: intP(1),
@@ -157,7 +163,9 @@ var _ = Describe("Schema", func() {
 			film := data.Films[0]
 			Expect(film.Title).To(Equal("ACADEMY DINOSAUR"))
 			Expect(film.Description).ToNot(BeNil())
-			Expect(*film.Description).To(Equal("A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies"))
+			Expect(*film.Description).To(Equal(
+				"A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies",
+			))
 			Expect(film.ReleaseYear).ToNot(BeNil())
 			Expect(*film.ReleaseYear).To(Equal(2006))
 			Expect(film.LanguageID).To(Equal(1))

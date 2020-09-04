@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	filmType     *graphql.Object
+	//nolint:gochecknoglobals
+	filmType *graphql.Object
+	//nolint:gochecknoglobals
 	filmTypeSync sync.Once
 )
 

@@ -28,10 +28,13 @@ func main() {
 	}
 
 	logger.Info("Connecting to DB...")
+
 	db, err := mysql.Open(env.GetMySQLURL())
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	//nolint:errcheck
 	defer db.Close()
 
 	err = db.Ping()
@@ -40,7 +43,10 @@ func main() {
 	}
 
 	logger.Info("Connecting to cache...")
+
 	cache := redis.NewClient(env.GetRedisURL(), env.GetRedisPassword())
+
+	//nolint:errcheck
 	defer cache.Close()
 
 	err = cache.Ping(context.Background()).Err()
@@ -60,12 +66,14 @@ func main() {
 	}
 
 	logger.Info("Building GraphQL schema...")
+
 	graphqlSchema, err := graphql.NewSchema(filmService)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
 	logger.Info("Starting health checker...")
+
 	checker, err := health.NewChecker(&health.Checks{
 		DB: &health.Check{
 			Name:    "mysql",
@@ -93,7 +101,9 @@ func main() {
 	logger.Info("Starting server...")
 
 	addr := fmt.Sprintf(":%s", env.GetPort())
+
 	logger.Info("Listening on", addr)
+
 	if err := http.ListenAndServe(addr, router); err != nil {
 		logger.Fatal(err)
 	}
