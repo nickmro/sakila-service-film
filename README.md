@@ -43,6 +43,13 @@ go build -o ./bin/serve -i ./cmd/serve
 ./bin/serve
 ```
 
+## Docker
+
+```bash
+docker build -t sakila/service-film:1.0 .
+docker run --name sakila-service-film --publish 3000:3000 sakila/service-film:1.0
+```
+
 ## Documentation
 
 The REST API documentation is provided by `swagger.yml`. It can be loaded into an API client such as [Postman](https://www.postman.com/) or [Insomnia](https://insomnia.rest/).
@@ -91,5 +98,4 @@ golangci-lint run
 
 ## Coming Soon
 
-- [ ] Docker
 - [ ] CI
