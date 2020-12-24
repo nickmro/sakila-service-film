@@ -20,8 +20,10 @@ const (
 	cachekeyFilmFmt = "sakila:film.service:film:%d"
 )
 
-const timeoutDuration = time.Second * 5
-const expirationDuration = time.Minute * 5
+const (
+	timeoutDuration    = time.Second * 5
+	expirationDuration = time.Minute * 5
+)
 
 // GetFilm returns a film from the cache.
 func (c *FilmCache) GetFilm(id int) (*sakila.Film, error) {

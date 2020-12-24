@@ -19,8 +19,10 @@ type Env struct {
 	redisURL      string
 }
 
-const configPath = "."
-const configType = "env"
+const (
+	configPath = "."
+	configType = "env"
+)
 
 const (
 	envKeyLogger        = "LOGGER"

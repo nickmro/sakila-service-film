@@ -40,6 +40,7 @@ func RequestLogger(logger sakila.Logger) func(http.Handler) http.Handler {
 				b, err := json.Marshal(log)
 				if err != nil {
 					logger.Error(err)
+
 					return
 				}
 

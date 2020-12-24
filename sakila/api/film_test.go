@@ -1,13 +1,13 @@
 package api_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"sakila/sakila-film-service/sakila"
 	"sakila/sakila-film-service/sakila/api"
 	"sakila/sakila-film-service/sakila/log"
 	"sakila/sakila-film-service/sakila/mock"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 const unexpectedError = sakila.Error("unexpected error")
@@ -41,6 +41,7 @@ var _ = Describe("FilmService", func() {
 
 			filmCache.GetFilmFn = func(id int) (*sakila.Film, error) {
 				invoked = true
+
 				return &sakila.Film{FilmID: id}, nil
 			}
 
@@ -63,6 +64,7 @@ var _ = Describe("FilmService", func() {
 
 				filmStore.QueryFilmFn = func(id int) (*sakila.Film, error) {
 					invoked = true
+
 					return &sakila.Film{FilmID: id}, nil
 				}
 
@@ -78,6 +80,7 @@ var _ = Describe("FilmService", func() {
 
 				actorStore.QueryFilmActorsFn = func(id int) ([]*sakila.Actor, error) {
 					invoked = true
+
 					return []*sakila.Actor{{}}, nil
 				}
 
@@ -93,6 +96,7 @@ var _ = Describe("FilmService", func() {
 
 				filmCache.SetFilmFn = func(film *sakila.Film) error {
 					invoked = true
+
 					return nil
 				}
 
@@ -116,6 +120,7 @@ var _ = Describe("FilmService", func() {
 
 				filmStore.QueryFilmFn = func(filmID int) (*sakila.Film, error) {
 					invoked = true
+
 					return &sakila.Film{FilmID: filmID}, nil
 				}
 
@@ -188,6 +193,7 @@ var _ = Describe("FilmService", func() {
 
 			filmStore.QueryFilmsFn = func(_ map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
 				invoked = true
+
 				return []*sakila.Film{{}, {}}, nil
 			}
 
@@ -222,6 +228,7 @@ var _ = Describe("FilmService", func() {
 				if param := params[sakila.FilmQueryParamFirst]; param != nil {
 					first = param.(int)
 				}
+
 				return []*sakila.Film{{}}, nil
 			}
 
@@ -237,6 +244,7 @@ var _ = Describe("FilmService", func() {
 
 			filmStore.QueryFilmsFn = func(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
 				after = params[sakila.FilmQueryParamAfter].(int)
+
 				return []*sakila.Film{{}}, nil
 			}
 
@@ -255,6 +263,7 @@ var _ = Describe("FilmService", func() {
 					if param := params[sakila.FilmQueryParamFirst]; param != nil {
 						first = param.(int)
 					}
+
 					return []*sakila.Film{{}}, nil
 				}
 
@@ -296,5 +305,4 @@ var _ = Describe("FilmService", func() {
 			})
 		})
 	})
-
 })

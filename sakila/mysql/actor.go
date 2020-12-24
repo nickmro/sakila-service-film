@@ -33,6 +33,8 @@ func (db *ActorDB) QueryFilmActors(filmID int) ([]*sakila.Actor, error) {
 		return nil, err
 	}
 
+	defer rows.Close() //nolint:errcheck
+
 	for rows.Next() {
 		var actor sakila.Actor
 

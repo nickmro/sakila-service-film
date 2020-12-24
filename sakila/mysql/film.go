@@ -4,9 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
-
 	"sakila/sakila-film-service/sakila"
+	"strings"
 )
 
 // FilmDB is a connection to film database.
@@ -79,6 +78,8 @@ func (db *FilmDB) QueryFilms(params map[sakila.FilmQueryParam]interface{}) ([]*s
 	} else if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
+	defer rows.Close() //nolint:errcheck
 
 	for rows.Next() {
 		var film sakila.Film

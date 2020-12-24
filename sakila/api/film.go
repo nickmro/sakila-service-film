@@ -33,12 +33,14 @@ func (s *FilmService) GetFilm(id int) (*sakila.Film, error) {
 		return nil, NewError(sakila.ErrorNotFound, "Film not found.")
 	} else if err != nil {
 		s.Logger.Error(err)
+
 		return nil, NewError(sakila.ErrorInternal, "Internal error.")
 	}
 
 	actors, err := s.ActorStore.QueryFilmActors(id)
 	if err != nil {
 		s.Logger.Error(err)
+
 		return nil, NewError(sakila.ErrorInternal, "Internal error.")
 	}
 
@@ -59,6 +61,7 @@ func (s *FilmService) GetFilms(params map[sakila.FilmQueryParam]interface{}) ([]
 	films, err := s.FilmStore.QueryFilms(params)
 	if err != nil {
 		s.Logger.Error(err)
+
 		return nil, NewError(sakila.ErrorInternal, "Internal error.")
 	}
 
@@ -66,6 +69,7 @@ func (s *FilmService) GetFilms(params map[sakila.FilmQueryParam]interface{}) ([]
 		actors, err := s.ActorStore.QueryFilmActors(film.FilmID)
 		if err != nil {
 			s.Logger.Error(err)
+
 			return nil, NewError(sakila.ErrorInternal, "Internal error.")
 		}
 

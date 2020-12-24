@@ -194,6 +194,7 @@ var _ = Describe("Schema", func() {
 					first = params[sakila.FilmQueryParamFirst].(int)
 					after = params[sakila.FilmQueryParamAfter].(int)
 					category = params[sakila.FilmQueryParamCategory].(string)
+
 					return []*sakila.Film{{}}, nil
 				}
 

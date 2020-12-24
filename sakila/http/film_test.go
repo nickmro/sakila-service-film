@@ -3,13 +3,12 @@ package http_test
 import (
 	"encoding/json"
 	"net/http/httptest"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"sakila/sakila-film-service/sakila"
 	"sakila/sakila-film-service/sakila/http"
 	"sakila/sakila-film-service/sakila/mock"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Film", func() {

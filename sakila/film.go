@@ -42,10 +42,10 @@ type FilmCache interface {
 }
 
 const (
-	// FilmQueryParamAfter indicates the ID of the record before the first one to return
+	// FilmQueryParamAfter indicates the ID of the record before the first one to return.
 	FilmQueryParamAfter = FilmQueryParam("after")
-	// FilmQueryParamFirst indicates how many records to return starting from the first matching record
+	// FilmQueryParamFirst indicates how many records to return starting from the first matching record.
 	FilmQueryParamFirst = FilmQueryParam("first")
-	// FilmQueryParamCategory indicates the category of the films to return
+	// FilmQueryParamCategory indicates the category of the films to return.
 	FilmQueryParamCategory = FilmQueryParam("category")
 )

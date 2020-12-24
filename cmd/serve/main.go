@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-
 	"sakila/sakila-film-service/sakila/api"
 	"sakila/sakila-film-service/sakila/config"
 	"sakila/sakila-film-service/sakila/graphql"
