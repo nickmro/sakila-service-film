@@ -1,4 +1,5 @@
 # Sakila Film Service
+[![Build Status](https://travis-ci.com/nickmro/sakila-service-film.svg?branch=master)](https://travis-ci.com/nickmro/sakila-service-film)
 
 ## Introduction
 
@@ -95,7 +96,3 @@ To run the linter:
 ```
 golangci-lint run
 ```
-
-## Coming Soon
-
-- [ ] CI
