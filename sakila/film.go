@@ -20,7 +20,7 @@ type Film struct {
 	LastUpdate         time.Time `json:"last_update"`
 }
 
-// FilmQueryParam is a film query parameter
+// FilmQueryParam is a film query parameter.
 type FilmQueryParam string
 
 // FilmService defines the interface for a film service.

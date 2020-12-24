@@ -4,13 +4,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"errors"
-
 	"sakila/sakila-film-service/sakila"
 	"sakila/sakila-film-service/sakila/api"
 	"sakila/sakila-film-service/sakila/log"
 	"sakila/sakila-film-service/sakila/mock"
 )
+
+const unexpectedError = sakila.Error("unexpected error")
 
 var _ = Describe("FilmService", func() {
 	var filmService *api.FilmService
@@ -107,7 +107,7 @@ var _ = Describe("FilmService", func() {
 		Context("when getting the film from the cache fails", func() {
 			BeforeEach(func() {
 				filmCache.GetFilmFn = func(filmID int) (*sakila.Film, error) {
-					return nil, errors.New("Error occurred")
+					return nil, unexpectedError
 				}
 			})
 
@@ -152,7 +152,7 @@ var _ = Describe("FilmService", func() {
 				}
 
 				filmStore.QueryFilmFn = func(filmID int) (*sakila.Film, error) {
-					return nil, errors.New("")
+					return nil, unexpectedError
 				}
 			})
 
@@ -170,7 +170,7 @@ var _ = Describe("FilmService", func() {
 				}
 
 				actorStore.QueryFilmActorsFn = func(_ int) ([]*sakila.Actor, error) {
-					return nil, errors.New("")
+					return nil, unexpectedError
 				}
 			})
 
@@ -267,7 +267,7 @@ var _ = Describe("FilmService", func() {
 		Context("when getting the films fails", func() {
 			BeforeEach(func() {
 				filmStore.QueryFilmsFn = func(_ map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
-					return nil, errors.New("")
+					return nil, unexpectedError
 				}
 			})
 
@@ -285,7 +285,7 @@ var _ = Describe("FilmService", func() {
 				}
 
 				actorStore.QueryFilmActorsFn = func(_ int) ([]*sakila.Actor, error) {
-					return nil, errors.New("")
+					return nil, unexpectedError
 				}
 			})
 

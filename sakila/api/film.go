@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"sakila/sakila-film-service/sakila"
 )
 
@@ -19,7 +20,7 @@ const (
 // GetFilm returns the requested film.
 func (s *FilmService) GetFilm(id int) (*sakila.Film, error) {
 	film, err := s.FilmCache.GetFilm(id)
-	if err != nil && err != sakila.ErrorNotFound {
+	if err != nil && !errors.Is(err, sakila.ErrorNotFound) {
 		s.Logger.Error(err)
 	}
 
@@ -28,7 +29,7 @@ func (s *FilmService) GetFilm(id int) (*sakila.Film, error) {
 	}
 
 	film, err = s.FilmStore.QueryFilm(id)
-	if err == sakila.ErrorNotFound {
+	if errors.Is(err, sakila.ErrorNotFound) {
 		return nil, NewError(sakila.ErrorNotFound, "Film not found.")
 	} else if err != nil {
 		s.Logger.Error(err)

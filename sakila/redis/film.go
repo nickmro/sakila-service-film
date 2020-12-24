@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sakila/sakila-film-service/sakila"
 	"time"
@@ -28,7 +29,7 @@ func (c *FilmCache) GetFilm(id int) (*sakila.Film, error) {
 	defer cancel()
 
 	val, err := c.Client.Get(ctx, filmCacheKey(id)).Result()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return nil, sakila.ErrorNotFound
 	} else if err != nil {
 		return nil, err

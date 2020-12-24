@@ -140,5 +140,5 @@ func (e *Env) GetPort() string {
 }
 
 func missingEnvError(key string) error {
-	return fmt.Errorf("%s required", key)
+	return fmt.Errorf("%w: %s", ErrorMissing, key)
 }

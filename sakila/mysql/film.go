@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -57,7 +58,7 @@ func (db *FilmDB) QueryFilm(id int) (*sakila.Film, error) {
 		&film.LastUpdate,
 	)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, sakila.ErrorNotFound
 	} else if err != nil {
 		return nil, err
