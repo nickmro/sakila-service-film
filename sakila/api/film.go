@@ -1,80 +1,93 @@
 package api
 
 import (
-	"errors"
+	"encoding/json"
+	"net/http"
 	"sakila/sakila-film-service/sakila"
+	"strconv"
+
+	"github.com/go-chi/chi"
 )
 
-// FilmService is the API for films.
-type FilmService struct {
-	ActorStore sakila.ActorStore
-	FilmCache  sakila.FilmCache
-	FilmStore  sakila.FilmStore
-	Logger     sakila.Logger
+// FilmHandler handles film requests.
+type FilmHandler struct {
+	*chi.Mux
+	FilmService sakila.FilmService
 }
 
-const (
-	defaultLimit = 20
-)
+// NewFilmHandler returns a new film service handler.
+func NewFilmHandler(service sakila.FilmService) *FilmHandler {
+	mux := chi.NewMux()
+	mux.Get("/", getFilmsHandlerFunc(service))
+	mux.Get("/{id}", getFilmHandlerFunc(service))
 
-// GetFilm returns the requested film.
-func (s *FilmService) GetFilm(id int) (*sakila.Film, error) {
-	film, err := s.FilmCache.GetFilm(id)
-	if err != nil && !errors.Is(err, sakila.ErrorNotFound) {
-		s.Logger.Error(err)
-	}
-
-	if film != nil {
-		return film, nil
-	}
-
-	film, err = s.FilmStore.QueryFilm(id)
-	if errors.Is(err, sakila.ErrorNotFound) {
-		return nil, NewError(sakila.ErrorNotFound, "Film not found.")
-	} else if err != nil {
-		s.Logger.Error(err)
-
-		return nil, NewError(sakila.ErrorInternal, "Internal error.")
-	}
-
-	actors, err := s.ActorStore.QueryFilmActors(id)
-	if err != nil {
-		s.Logger.Error(err)
-
-		return nil, NewError(sakila.ErrorInternal, "Internal error.")
-	}
-
-	film.Actors = actors
-
-	//nolint:errcheck
-	go s.FilmCache.SetFilm(film)
-
-	return film, nil
+	return &FilmHandler{Mux: mux}
 }
 
-// GetFilms returns a list of films.
-func (s *FilmService) GetFilms(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
-	if _, ok := params[sakila.FilmQueryParamFirst].(int); !ok {
-		params[sakila.FilmQueryParamFirst] = defaultLimit
-	}
+func getFilmsHandlerFunc(service sakila.FilmService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := filmQueryParams(r)
 
-	films, err := s.FilmStore.QueryFilms(params)
-	if err != nil {
-		s.Logger.Error(err)
-
-		return nil, NewError(sakila.ErrorInternal, "Internal error.")
-	}
-
-	for _, film := range films {
-		actors, err := s.ActorStore.QueryFilmActors(film.FilmID)
+		films, err := service.GetFilms(params)
 		if err != nil {
-			s.Logger.Error(err)
+			w.WriteHeader(statusForError(err))
+			//nolint:errcheck
+			json.NewEncoder(w).Encode(err)
 
-			return nil, NewError(sakila.ErrorInternal, "Internal error.")
+			return
 		}
 
-		film.Actors = actors
+		w.WriteHeader(http.StatusOK)
+		//nolint:errcheck
+		json.NewEncoder(w).Encode(films)
+	}
+}
+
+func getFilmHandlerFunc(service sakila.FilmService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		filmID, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			//nolint:errcheck
+			json.NewEncoder(w).Encode(http.StatusText(http.StatusBadRequest))
+
+			return
+		}
+
+		film, err := service.GetFilm(filmID)
+		if err != nil {
+			w.WriteHeader(statusForError(err))
+			//nolint:errcheck
+			json.NewEncoder(w).Encode(err)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		//nolint:errcheck
+		json.NewEncoder(w).Encode(film)
+	}
+}
+
+func filmQueryParams(r *http.Request) map[sakila.FilmQueryParam]interface{} {
+	query := r.URL.Query()
+	params := map[sakila.FilmQueryParam]interface{}{}
+
+	if firstParam := query[string(sakila.FilmQueryParamFirst)]; len(firstParam) > 0 {
+		if first, err := strconv.Atoi(firstParam[0]); err == nil {
+			params[sakila.FilmQueryParamFirst] = first
+		}
 	}
 
-	return films, nil
+	if afterParam := query[string(sakila.FilmQueryParamAfter)]; len(afterParam) > 0 {
+		if after, err := strconv.Atoi(afterParam[0]); err == nil {
+			params[sakila.FilmQueryParamAfter] = after
+		}
+	}
+
+	if categoryParam := query[string(sakila.FilmQueryParamCategory)]; len(categoryParam) > 0 {
+		params[sakila.FilmQueryParamCategory] = categoryParam[0]
+	}
+
+	return params
 }

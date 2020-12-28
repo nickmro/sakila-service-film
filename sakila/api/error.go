@@ -1,16 +1,19 @@
 package api
 
-// Error is an API service error.
-type Error struct {
-	Err     error  `json:"error"`
-	Message string `json:"message,omitempty"`
+import (
+	"net/http"
+	"sakila/sakila-film-service/sakila"
+)
+
+var errorStatuses = map[error]int{
+	sakila.ErrorNotFound: http.StatusNotFound,
+	sakila.ErrorInternal: http.StatusInternalServerError,
 }
 
-// NewError returns a new API error.
-func NewError(err error, msg string) Error {
-	return Error{Err: err, Message: msg}
-}
+func statusForError(err error) int {
+	if status := errorStatuses[err]; status != 0 {
+		return status
+	}
 
-func (e Error) Error() string {
-	return e.Err.Error()
+	return http.StatusInternalServerError
 }

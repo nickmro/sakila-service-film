@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sakila/sakila-film-service/sakila/api"
+	"sakila/sakila-film-service/sakila/app"
 	"sakila/sakila-film-service/sakila/config"
 	"sakila/sakila-film-service/sakila/graphql"
 	"sakila/sakila-film-service/sakila/health"
-	"sakila/sakila-film-service/sakila/http"
 	"sakila/sakila-film-service/sakila/log"
 	"sakila/sakila-film-service/sakila/mysql"
 	"sakila/sakila-film-service/sakila/redis"
@@ -57,7 +58,7 @@ func main() {
 	filmCache := &redis.FilmCache{Client: cache}
 	actorStore := &mysql.ActorDB{DB: db}
 
-	filmService := &api.FilmService{
+	filmService := &app.FilmService{
 		ActorStore: actorStore,
 		FilmCache:  filmCache,
 		FilmStore:  filmStore,
@@ -91,8 +92,8 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	router := http.NewRouter(logger)
-	router.Mount("/films", http.NewFilmHandler(filmService))
+	router := api.NewRouter(logger)
+	router.Mount("/films", api.NewFilmHandler(filmService))
 	router.Mount("/graphql", graphql.NewHandler(graphqlSchema))
 	router.Mount("/healthz", health.NewHandler(checker))
 	router.Mount("/readyz", health.NewHandler(checker))
