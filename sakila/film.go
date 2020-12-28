@@ -23,16 +23,19 @@ type Film struct {
 // FilmQueryParam is a film query parameter.
 type FilmQueryParam string
 
+// FilmQueryParams are film query parameters.
+type FilmQueryParams map[FilmQueryParam]interface{}
+
 // FilmService defines the interface for a film service.
 type FilmService interface {
 	GetFilm(id int) (*Film, error)
-	GetFilms(params map[FilmQueryParam]interface{}) ([]*Film, error)
+	GetFilms(params FilmQueryParams) ([]*Film, error)
 }
 
 // FilmStore defines the interface for film storage.
 type FilmStore interface {
 	QueryFilm(id int) (*Film, error)
-	QueryFilms(params map[FilmQueryParam]interface{}) ([]*Film, error)
+	QueryFilms(params FilmQueryParams) ([]*Film, error)
 }
 
 // FilmCache defines the interface for the film cache.

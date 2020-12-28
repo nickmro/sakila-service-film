@@ -75,7 +75,7 @@ func FilmResolver(s sakila.FilmService) graphql.FieldResolveFn {
 // FilmsResolver returns films for the given parameters.
 func FilmsResolver(s sakila.FilmService) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (i interface{}, e error) {
-		params := map[sakila.FilmQueryParam]interface{}{}
+		params := sakila.FilmQueryParams{}
 
 		if firstArg := p.Args["first"]; firstArg != nil {
 			if first := firstArg.(int); first > 0 {

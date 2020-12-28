@@ -5,13 +5,13 @@ import "sakila/sakila-film-service/sakila"
 // FilmService is a mock film service.
 type FilmService struct {
 	GetFilmFn  func(filmID int) (*sakila.Film, error)
-	GetFilmsFn func(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error)
+	GetFilmsFn func(params sakila.FilmQueryParams) ([]*sakila.Film, error)
 }
 
 // FilmStore is a mock film store.
 type FilmStore struct {
 	QueryFilmFn  func(filmID int) (*sakila.Film, error)
-	QueryFilmsFn func(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error)
+	QueryFilmsFn func(params sakila.FilmQueryParams) ([]*sakila.Film, error)
 }
 
 // FilmCache is a mock film cache.
@@ -30,7 +30,7 @@ func (s *FilmService) GetFilm(filmID int) (*sakila.Film, error) {
 }
 
 // GetFilms runs the mock function or returns an empty slice of films.
-func (s *FilmService) GetFilms(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+func (s *FilmService) GetFilms(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
 	if fn := s.GetFilmsFn; fn != nil {
 		return fn(params)
 	}
@@ -48,7 +48,7 @@ func (s *FilmStore) QueryFilm(filmID int) (*sakila.Film, error) {
 }
 
 // QueryFilms runs the mock function or returns an empty array of films.
-func (s *FilmStore) QueryFilms(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+func (s *FilmStore) QueryFilms(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
 	if fn := s.QueryFilmsFn; fn != nil {
 		return fn(params)
 	}

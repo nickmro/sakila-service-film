@@ -106,7 +106,7 @@ var _ = Describe("Schema", func() {
 
 	Describe("films", func() {
 		BeforeEach(func() {
-			filmService.GetFilmsFn = func(_ map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+			filmService.GetFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
 				return []*sakila.Film{
 					{
 						FilmID: 1,
@@ -190,7 +190,7 @@ var _ = Describe("Schema", func() {
 				var after int
 				var category string
 
-				filmService.GetFilmsFn = func(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+				filmService.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
 					first = params[sakila.FilmQueryParamFirst].(int)
 					after = params[sakila.FilmQueryParamAfter].(int)
 					category = params[sakila.FilmQueryParamCategory].(string)

@@ -22,7 +22,7 @@ var _ = Describe("Film", func() {
 
 	Describe("GET films", func() {
 		It("writes the films from the film service", func() {
-			filmService.GetFilmsFn = func(_ map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+			filmService.GetFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
 				return []*sakila.Film{{}, {}}, nil
 			}
 
@@ -41,7 +41,7 @@ var _ = Describe("Film", func() {
 				var after int
 				var category string
 
-				filmService.GetFilmsFn = func(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+				filmService.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
 					first = params[sakila.FilmQueryParamFirst].(int)
 					after = params[sakila.FilmQueryParamAfter].(int)
 					category = params[sakila.FilmQueryParamCategory].(string)
@@ -61,7 +61,7 @@ var _ = Describe("Film", func() {
 
 		Context("when getting the films fails", func() {
 			BeforeEach(func() {
-				filmService.GetFilmsFn = func(_ map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+				filmService.GetFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
 					return nil, sakila.ErrorInternal
 				}
 			})

@@ -67,7 +67,7 @@ func (db *FilmDB) QueryFilm(id int) (*sakila.Film, error) {
 }
 
 // QueryFilms returns the films to query or an error.
-func (db *FilmDB) QueryFilms(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+func (db *FilmDB) QueryFilms(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
 	films := []*sakila.Film{}
 
 	query, args := filmQueryForParams(params)
@@ -108,7 +108,7 @@ func (db *FilmDB) QueryFilms(params map[sakila.FilmQueryParam]interface{}) ([]*s
 	return films, nil
 }
 
-func filmQueryForParams(params map[sakila.FilmQueryParam]interface{}) (query string, args []interface{}) {
+func filmQueryForParams(params sakila.FilmQueryParams) (query string, args []interface{}) {
 	query = filmsQuery
 	wheres := []string{}
 

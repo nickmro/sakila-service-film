@@ -69,9 +69,9 @@ func getFilmHandlerFunc(service sakila.FilmService) http.HandlerFunc {
 	}
 }
 
-func filmQueryParams(r *http.Request) map[sakila.FilmQueryParam]interface{} {
+func filmQueryParams(r *http.Request) sakila.FilmQueryParams {
 	query := r.URL.Query()
-	params := map[sakila.FilmQueryParam]interface{}{}
+	params := sakila.FilmQueryParams{}
 
 	if firstParam := query[string(sakila.FilmQueryParamFirst)]; len(firstParam) > 0 {
 		if first, err := strconv.Atoi(firstParam[0]); err == nil {

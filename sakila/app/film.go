@@ -53,7 +53,7 @@ func (s *FilmService) GetFilm(id int) (*sakila.Film, error) {
 }
 
 // GetFilms returns a list of films.
-func (s *FilmService) GetFilms(params map[sakila.FilmQueryParam]interface{}) ([]*sakila.Film, error) {
+func (s *FilmService) GetFilms(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
 	if _, ok := params[sakila.FilmQueryParamFirst].(int); !ok {
 		params[sakila.FilmQueryParamFirst] = defaultLimit
 	}
