@@ -19,16 +19,16 @@ paths:
           style: form
           schema:
             type: string
-        - name: first
+        - name: limit
           in: query
           description: maximum number of films to return
           required: false
           schema:
             type: integer
             format: int32
-        - name: after
+        - name: offset
           in: query
-          description: the id of the previous film in the list
+          description: the number of films to skip
           required: false
           schema:
             type: integer

@@ -55,7 +55,7 @@ func main() {
 	}
 
 	filmStore := &mysql.FilmDB{DB: db}
-	filmCache := &redis.FilmCache{Client: cache}
+	filmCache := &redis.FilmCache{Client: cache, CacheKeyPrefix: env.GetRedisCacheKeyPrefix()}
 	actorStore := &mysql.ActorDB{DB: db}
 
 	filmService := &app.FilmService{

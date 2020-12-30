@@ -37,24 +37,24 @@ var _ = Describe("Film", func() {
 
 		Context("when the parameters are provided", func() {
 			It("passes them to the service", func() {
-				var first int
-				var after int
+				var limit int
+				var offset int
 				var category string
 
 				filmService.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
-					first = params[sakila.FilmQueryParamFirst].(int)
-					after = params[sakila.FilmQueryParamAfter].(int)
+					limit = params[sakila.FilmQueryParamLimit].(int)
+					offset = params[sakila.FilmQueryParamOffset].(int)
 					category = params[sakila.FilmQueryParamCategory].(string)
 
 					return []*sakila.Film{{}, {}}, nil
 				}
 
-				r, _ := api.NewRequest("GET", "/?category=Animation&first=20&after=100", nil)
+				r, _ := api.NewRequest("GET", "/?category=Animation&limit=20&offset=100", nil)
 				rr := httptest.NewRecorder()
 
 				filmHandler.ServeHTTP(rr, r)
-				Expect(first).To(Equal(20))
-				Expect(after).To(Equal(100))
+				Expect(limit).To(Equal(20))
+				Expect(offset).To(Equal(100))
 				Expect(category).To(Equal("Animation"))
 			})
 		})

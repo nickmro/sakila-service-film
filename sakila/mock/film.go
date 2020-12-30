@@ -16,8 +16,10 @@ type FilmStore struct {
 
 // FilmCache is a mock film cache.
 type FilmCache struct {
-	GetFilmFn func(filmID int) (*sakila.Film, error)
-	SetFilmFn func(film *sakila.Film) error
+	GetFilmFn  func(filmID int) (*sakila.Film, error)
+	SetFilmFn  func(film *sakila.Film) error
+	GetFilmsFn func(params sakila.FilmQueryParams) ([]*sakila.Film, error)
+	SetFilmsFn func(films []*sakila.Film, params sakila.FilmQueryParams) error
 }
 
 // GetFilm runs the mock function or returns an empty film.
@@ -65,10 +67,28 @@ func (c *FilmCache) GetFilm(filmID int) (*sakila.Film, error) {
 	return &sakila.Film{}, nil
 }
 
+// GetFilms runs the mock function or returns no films.
+func (c *FilmCache) GetFilms(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+	if fn := c.GetFilmsFn; fn != nil {
+		return fn(params)
+	}
+
+	return []*sakila.Film{}, nil
+}
+
 // SetFilm runs the mock function or returns no error.
 func (c *FilmCache) SetFilm(film *sakila.Film) error {
 	if fn := c.SetFilmFn; fn != nil {
 		return fn(film)
+	}
+
+	return nil
+}
+
+// SetFilms runs the mock function or returns no error.
+func (c *FilmCache) SetFilms(films []*sakila.Film, params sakila.FilmQueryParams) error {
+	if fn := c.SetFilmsFn; fn != nil {
+		return fn(films, params)
 	}
 
 	return nil

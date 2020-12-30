@@ -188,80 +188,104 @@ var _ = Describe("FilmService", func() {
 	})
 
 	Describe("GetFilms", func() {
-		It("returns the films from the store", func() {
+		It("returns the films from the cache", func() {
 			var invoked bool
 
-			filmStore.QueryFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
+			filmCache.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
 				invoked = true
 
-				return []*sakila.Film{{}, {}}, nil
+				return []*sakila.Film{{}}, nil
 			}
 
 			films, err := service.GetFilms(sakila.FilmQueryParams{})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(invoked).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-			Expect(films).To(HaveLen(2))
-		})
-
-		It("sets the actors from the actor store", func() {
-			filmStore.QueryFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
-				return []*sakila.Film{{}, {}}, nil
-			}
-
-			actorStore.QueryFilmActorsFn = func(_ int) ([]*sakila.Actor, error) {
-				return []*sakila.Actor{{}, {}}, nil
-			}
-
-			films, err := service.GetFilms(sakila.FilmQueryParams{})
-			Expect(err).ToNot(HaveOccurred())
 			Expect(films).ToNot(BeNil())
-			Expect(films).To(HaveLen(2))
-			for _, film := range films {
-				Expect(film.Actors).To(HaveLen(2))
-			}
+			Expect(films).To(HaveLen(1))
 		})
 
-		It("sends the 'first' parameter", func() {
-			var first int
+		Context("when the films are not cached", func() {
+			BeforeEach(func() {
+				filmCache.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+					return nil, sakila.ErrorNotFound
+				}
+			})
 
-			filmStore.QueryFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
-				if param := params[sakila.FilmQueryParamFirst]; param != nil {
-					first = param.(int)
+			It("returns the films from the store", func() {
+				var invoked bool
+
+				filmStore.QueryFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
+					invoked = true
+
+					return []*sakila.Film{{}, {}}, nil
+				}
+
+				films, err := service.GetFilms(sakila.FilmQueryParams{})
+				Expect(invoked).To(BeTrue())
+				Expect(err).ToNot(HaveOccurred())
+				Expect(films).To(HaveLen(2))
+			})
+
+			It("sets the actors from the actor store", func() {
+				filmStore.QueryFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
+					return []*sakila.Film{{}, {}}, nil
+				}
+
+				actorStore.QueryFilmActorsFn = func(_ int) ([]*sakila.Actor, error) {
+					return []*sakila.Actor{{}, {}}, nil
+				}
+
+				films, err := service.GetFilms(sakila.FilmQueryParams{})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(films).ToNot(BeNil())
+				Expect(films).To(HaveLen(2))
+				for _, film := range films {
+					Expect(film.Actors).To(HaveLen(2))
+				}
+			})
+		})
+
+		It("sends the 'limit' parameter", func() {
+			var limit int
+
+			filmCache.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+				if param := params[sakila.FilmQueryParamLimit]; param != nil {
+					limit = param.(int)
 				}
 
 				return []*sakila.Film{{}}, nil
 			}
 
 			_, err := service.GetFilms(sakila.FilmQueryParams{
-				sakila.FilmQueryParamFirst: 10,
+				sakila.FilmQueryParamLimit: 10,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(first).To(Equal(10))
+			Expect(limit).To(Equal(10))
 		})
 
-		It("sends the 'after' parameter", func() {
-			var after int
+		It("sends the 'offset' parameter", func() {
+			var offset int
 
-			filmStore.QueryFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
-				after = params[sakila.FilmQueryParamAfter].(int)
+			filmCache.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+				offset = params[sakila.FilmQueryParamOffset].(int)
 
 				return []*sakila.Film{{}}, nil
 			}
 
 			_, err := service.GetFilms(sakila.FilmQueryParams{
-				sakila.FilmQueryParamAfter: 10,
+				sakila.FilmQueryParamOffset: 10,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(after).To(Equal(10))
+			Expect(offset).To(Equal(10))
 		})
 
-		Context("when the 'first' parameter is not provided", func() {
+		Context("when the 'limit' parameter is not provided", func() {
 			It("defaults to 20", func() {
-				var first int
+				var limit int
 
-				filmStore.QueryFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
-					if param := params[sakila.FilmQueryParamFirst]; param != nil {
-						first = param.(int)
+				filmCache.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+					if param := params[sakila.FilmQueryParamLimit]; param != nil {
+						limit = param.(int)
 					}
 
 					return []*sakila.Film{{}}, nil
@@ -269,12 +293,16 @@ var _ = Describe("FilmService", func() {
 
 				_, err := service.GetFilms(sakila.FilmQueryParams{})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(first).To(Equal(20))
+				Expect(limit).To(Equal(20))
 			})
 		})
 
 		Context("when getting the films fails", func() {
 			BeforeEach(func() {
+				filmCache.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+					return nil, sakila.ErrorNotFound
+				}
+
 				filmStore.QueryFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
 					return nil, unexpectedError
 				}
@@ -289,6 +317,10 @@ var _ = Describe("FilmService", func() {
 
 		Context("when getting the actors fails", func() {
 			BeforeEach(func() {
+				filmCache.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+					return nil, sakila.ErrorNotFound
+				}
+
 				filmStore.QueryFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
 					return []*sakila.Film{{}}, nil
 				}

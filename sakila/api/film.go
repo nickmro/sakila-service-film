@@ -73,15 +73,15 @@ func filmQueryParams(r *http.Request) sakila.FilmQueryParams {
 	query := r.URL.Query()
 	params := sakila.FilmQueryParams{}
 
-	if firstParam := query[string(sakila.FilmQueryParamFirst)]; len(firstParam) > 0 {
-		if first, err := strconv.Atoi(firstParam[0]); err == nil {
-			params[sakila.FilmQueryParamFirst] = first
+	if limitParam := query[string(sakila.FilmQueryParamLimit)]; len(limitParam) > 0 {
+		if limit, err := strconv.Atoi(limitParam[0]); err == nil {
+			params[sakila.FilmQueryParamLimit] = limit
 		}
 	}
 
-	if afterParam := query[string(sakila.FilmQueryParamAfter)]; len(afterParam) > 0 {
-		if after, err := strconv.Atoi(afterParam[0]); err == nil {
-			params[sakila.FilmQueryParamAfter] = after
+	if offsetParam := query[string(sakila.FilmQueryParamOffset)]; len(offsetParam) > 0 {
+		if offset, err := strconv.Atoi(offsetParam[0]); err == nil {
+			params[sakila.FilmQueryParamOffset] = offset
 		}
 	}
 

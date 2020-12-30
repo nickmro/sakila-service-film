@@ -8,15 +8,16 @@ import (
 
 // Env represents the application environment.
 type Env struct {
-	logger        string
-	mySQLHost     string
-	mySQLName     string
-	mySQLPassword string
-	mySQLPort     string
-	mySQLUser     string
-	port          string
-	redisPassword string
-	redisURL      string
+	logger              string
+	mySQLHost           string
+	mySQLName           string
+	mySQLPassword       string
+	mySQLPort           string
+	mySQLUser           string
+	port                string
+	redisPassword       string
+	redisURL            string
+	redisCacheKeyPrefix string
 }
 
 const (
@@ -25,15 +26,16 @@ const (
 )
 
 const (
-	envKeyLogger        = "LOGGER"
-	envKeyMySQLHost     = "MYSQL_HOST"
-	envKeyMySQLName     = "MYSQL_NAME"
-	envKeyMySQLPassword = "MYSQL_PASSWORD"
-	envKeyMySQLPort     = "MYSQL_PORT"
-	envKeyMySQLUser     = "MYSQL_USER"
-	envKeyPort          = "PORT"
-	envKeyRedisURL      = "REDIS_URL"
-	envKeyRedisPassword = "REDIS_PASSWORD"
+	envKeyLogger              = "LOGGER"
+	envKeyMySQLHost           = "MYSQL_HOST"
+	envKeyMySQLName           = "MYSQL_NAME"
+	envKeyMySQLPassword       = "MYSQL_PASSWORD"
+	envKeyMySQLPort           = "MYSQL_PORT"
+	envKeyMySQLUser           = "MYSQL_USER"
+	envKeyPort                = "PORT"
+	envKeyRedisURL            = "REDIS_URL"
+	envKeyRedisPassword       = "REDIS_PASSWORD"
+	envKeyRedisCacheKeyPrefix = "REDIS_CACHE_KEY_PREFIX"
 )
 
 const (
@@ -84,21 +86,24 @@ func GetEnv(fileName string) (*Env, error) {
 
 	redisPassword := v.GetString(envKeyRedisPassword)
 
+	redisCacheKeyPrefix := v.GetString(envKeyRedisCacheKeyPrefix)
+
 	port := v.GetString(envKeyPort)
 	if port == "" {
 		port = defaultValuePort
 	}
 
 	env := &Env{
-		logger:        logger,
-		mySQLHost:     mySQLHost,
-		mySQLName:     mySQLName,
-		mySQLPassword: mySQLPassword,
-		mySQLPort:     mySQLPort,
-		mySQLUser:     mySQLUser,
-		port:          port,
-		redisPassword: redisPassword,
-		redisURL:      redisURL,
+		logger:              logger,
+		mySQLHost:           mySQLHost,
+		mySQLName:           mySQLName,
+		mySQLPassword:       mySQLPassword,
+		mySQLPort:           mySQLPort,
+		mySQLUser:           mySQLUser,
+		port:                port,
+		redisPassword:       redisPassword,
+		redisURL:            redisURL,
+		redisCacheKeyPrefix: redisCacheKeyPrefix,
 	}
 
 	return env, nil
@@ -139,6 +144,11 @@ func (e *Env) GetLogger() string {
 // GetPort return the port.
 func (e *Env) GetPort() string {
 	return e.port
+}
+
+// GetRedisCacheKeyPrefix returns the redis cache key prefix.
+func (e *Env) GetRedisCacheKeyPrefix() string {
+	return e.redisCacheKeyPrefix
 }
 
 func missingEnvError(key string) error {

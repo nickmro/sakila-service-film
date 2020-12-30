@@ -37,10 +37,10 @@ func NewSchema(s sakila.FilmService) (*Schema, error) {
 							Description: "Returns the films for the given parameters",
 							Type:        graphql.NewList(FilmType(s)),
 							Args: graphql.FieldConfigArgument{
-								"first": &graphql.ArgumentConfig{
+								"limit": &graphql.ArgumentConfig{
 									Type: graphql.Int,
 								},
-								"after": &graphql.ArgumentConfig{
+								"offset": &graphql.ArgumentConfig{
 									Type: graphql.Int,
 								},
 								"category": &graphql.ArgumentConfig{
@@ -77,15 +77,15 @@ func FilmsResolver(s sakila.FilmService) graphql.FieldResolveFn {
 	return func(p graphql.ResolveParams) (i interface{}, e error) {
 		params := sakila.FilmQueryParams{}
 
-		if firstArg := p.Args["first"]; firstArg != nil {
-			if first := firstArg.(int); first > 0 {
-				params[sakila.FilmQueryParamFirst] = first
+		if limitArg := p.Args["limit"]; limitArg != nil {
+			if limit := limitArg.(int); limit > 0 {
+				params[sakila.FilmQueryParamLimit] = limit
 			}
 		}
 
-		if afterArg := p.Args["after"]; afterArg != nil {
-			if after := afterArg.(int); after > 0 {
-				params[sakila.FilmQueryParamAfter] = after
+		if offsetArg := p.Args["offset"]; offsetArg != nil {
+			if offset := offsetArg.(int); offset > 0 {
+				params[sakila.FilmQueryParamOffset] = offset
 			}
 		}
 

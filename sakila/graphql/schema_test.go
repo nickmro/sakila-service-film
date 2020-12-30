@@ -184,15 +184,15 @@ var _ = Describe("Schema", func() {
 			Expect(film.LastUpdate).ToNot(BeZero())
 		})
 
-		Context("when the 'first', 'after', and 'category' parameters are provided", func() {
+		Context("when the 'limit', 'offset', and 'category' parameters are provided", func() {
 			It("passes them to the film service", func() {
-				var first int
-				var after int
+				var limit int
+				var offset int
 				var category string
 
 				filmService.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
-					first = params[sakila.FilmQueryParamFirst].(int)
-					after = params[sakila.FilmQueryParamAfter].(int)
+					limit = params[sakila.FilmQueryParamLimit].(int)
+					offset = params[sakila.FilmQueryParamOffset].(int)
 					category = params[sakila.FilmQueryParamCategory].(string)
 
 					return []*sakila.Film{{}}, nil
@@ -200,7 +200,7 @@ var _ = Describe("Schema", func() {
 
 				query := `
 					{
-						films(first: 20, after: 100, category: "Animation") {
+						films(limit: 20, offset: 100, category: "Animation") {
 							filmId
 						}
 					}
@@ -208,8 +208,8 @@ var _ = Describe("Schema", func() {
 
 				_, err := schema.Request(query)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(first).To(Equal(20))
-				Expect(after).To(Equal(100))
+				Expect(limit).To(Equal(20))
+				Expect(offset).To(Equal(100))
 				Expect(category).To(Equal("Animation"))
 			})
 		})

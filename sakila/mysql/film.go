@@ -122,22 +122,22 @@ func filmQueryForParams(params sakila.FilmQueryParams) (query string, args []int
 		wheres = append(wheres, `category.name = ?`)
 	}
 
-	if after, ok := params[sakila.FilmQueryParamAfter].(int); ok {
-		args = append(args, after)
-
-		wheres = append(wheres, `film.film_id > ?`)
-	}
-
 	if len(wheres) > 0 {
 		query += fmt.Sprintf(` WHERE %s`, strings.Join(wheres, ` AND `))
 	}
 
 	query += ` ORDER BY film.film_id ASC`
 
-	if first, ok := params[sakila.FilmQueryParamFirst].(int); ok {
-		args = append(args, first)
+	if limit, ok := params[sakila.FilmQueryParamLimit].(int); ok {
+		args = append(args, limit)
 
 		query += ` LIMIT ?`
+	}
+
+	if offset, ok := params[sakila.FilmQueryParamOffset].(int); ok {
+		args = append(args, offset)
+
+		query += ` OFFSET ?`
 	}
 
 	return query, args

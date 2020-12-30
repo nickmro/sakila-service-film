@@ -54,11 +54,20 @@ func (s *FilmService) GetFilm(id int) (*sakila.Film, error) {
 
 // GetFilms returns a list of films.
 func (s *FilmService) GetFilms(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
-	if _, ok := params[sakila.FilmQueryParamFirst].(int); !ok {
-		params[sakila.FilmQueryParamFirst] = defaultLimit
+	if _, ok := params[sakila.FilmQueryParamLimit].(int); !ok {
+		params[sakila.FilmQueryParamLimit] = defaultLimit
 	}
 
-	films, err := s.FilmStore.QueryFilms(params)
+	films, err := s.FilmCache.GetFilms(params)
+	if err != nil && !errors.Is(err, sakila.ErrorNotFound) {
+		s.Logger.Error(err)
+	}
+
+	if films != nil {
+		return films, nil
+	}
+
+	films, err = s.FilmStore.QueryFilms(params)
 	if err != nil {
 		s.Logger.Error(err)
 
@@ -76,5 +85,13 @@ func (s *FilmService) GetFilms(params sakila.FilmQueryParams) ([]*sakila.Film, e
 		film.Actors = actors
 	}
 
+	go s.cacheFilms(films, params)
+
 	return films, nil
+}
+
+func (s *FilmService) cacheFilms(films []*sakila.Film, params sakila.FilmQueryParams) {
+	if err := s.FilmCache.SetFilms(films, params); err != nil {
+		s.Logger.Error(err)
+	}
 }

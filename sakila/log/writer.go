@@ -38,6 +38,7 @@ func NewWriter(e Environment) (w *Writer, err error) {
 	case EnvironmentTest:
 		logger = zap.NewNop()
 	case EnvironmentDevelopment:
+		fallthrough
 	default:
 		logger, err = zap.NewDevelopment(options...)
 	}

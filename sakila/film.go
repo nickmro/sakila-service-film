@@ -42,13 +42,15 @@ type FilmStore interface {
 type FilmCache interface {
 	GetFilm(id int) (*Film, error)
 	SetFilm(film *Film) error
+	GetFilms(params FilmQueryParams) ([]*Film, error)
+	SetFilms(films []*Film, params FilmQueryParams) error
 }
 
 const (
-	// FilmQueryParamAfter indicates the ID of the record before the first one to return.
-	FilmQueryParamAfter = FilmQueryParam("after")
-	// FilmQueryParamFirst indicates how many records to return starting from the first matching record.
-	FilmQueryParamFirst = FilmQueryParam("first")
+	// FilmQueryParamOffset indicates the number of films to skip.
+	FilmQueryParamOffset = FilmQueryParam("offset")
+	// FilmQueryParamLimit indicates how many records to return starting from the first matching record.
+	FilmQueryParamLimit = FilmQueryParam("limit")
 	// FilmQueryParamCategory indicates the category of the films to return.
 	FilmQueryParamCategory = FilmQueryParam("category")
 )
