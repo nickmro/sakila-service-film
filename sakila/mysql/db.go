@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -19,4 +20,13 @@ func (db *DB) Status() (interface{}, error) {
 	defer cancel()
 
 	return nil, db.DB.PingContext(ctx)
+}
+
+func argString(count int) string {
+	argStrings := make([]string, count)
+	for i := 0; i < count; i++ {
+		argStrings[i] = "?"
+	}
+
+	return strings.Join(argStrings, ", ")
 }

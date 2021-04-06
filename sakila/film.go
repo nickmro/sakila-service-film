@@ -16,7 +16,7 @@ type Film struct {
 	Length             *int      `json:"length,omitempty"`
 	ReplacementCost    float64   `json:"replacement_cost"`
 	Rating             *string   `json:"rating,omitempty"`
-	SpecialFeatures    []uint8   `json:"special_features,omitempty"`
+	SpecialFeatures    []string  `json:"special_features,omitempty"`
 	LastUpdate         time.Time `json:"last_update"`
 }
 
@@ -30,12 +30,16 @@ type FilmQueryParams map[FilmQueryParam]interface{}
 type FilmService interface {
 	GetFilm(id int) (*Film, error)
 	GetFilms(params FilmQueryParams) ([]*Film, error)
+	GetFilmCategories(params FilmCategoryParams) ([]*FilmCategory, error)
+	GetFilmActors(params FilmActorParams) ([]*FilmActor, error)
 }
 
 // FilmStore defines the interface for film storage.
 type FilmStore interface {
 	QueryFilm(id int) (*Film, error)
 	QueryFilms(params FilmQueryParams) ([]*Film, error)
+	QueryFilmActors(params FilmActorParams) ([]*FilmActor, error)
+	QueryFilmCategories(params FilmCategoryParams) ([]*FilmCategory, error)
 }
 
 // FilmCache defines the interface for the film cache.
@@ -44,6 +48,10 @@ type FilmCache interface {
 	SetFilm(film *Film) error
 	GetFilms(params FilmQueryParams) ([]*Film, error)
 	SetFilms(films []*Film, params FilmQueryParams) error
+	GetFilmActors(params FilmActorParams) ([]*FilmActor, error)
+	SetFilmActors(actors []*FilmActor, params FilmActorParams) error
+	GetFilmCategories(params FilmCategoryParams) ([]*FilmCategory, error)
+	SetFilmCategories(categories []*FilmCategory, params FilmCategoryParams) error
 }
 
 const (

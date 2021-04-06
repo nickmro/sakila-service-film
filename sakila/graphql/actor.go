@@ -2,8 +2,10 @@ package graphql
 
 import (
 	"sakila/sakila-film-service/sakila"
+	"strconv"
 	"sync"
 
+	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql"
 )
 
@@ -72,4 +74,20 @@ func ActorType() *graphql.Object {
 	})
 
 	return actorType
+}
+
+// FilmActorsResolver returns a film actors resolver.
+func FilmActorsResolver(loader *dataloader.Loader) graphql.FieldResolveFn {
+	return func(p graphql.ResolveParams) (interface{}, error) {
+		if film, ok := p.Source.(*sakila.Film); ok {
+			key := strconv.Itoa(film.FilmID)
+			thunk := loader.Load(p.Context, dataloader.StringKey(key))
+
+			return func() (interface{}, error) {
+				return thunk()
+			}, nil
+		}
+
+		return nil, nil
+	}
 }

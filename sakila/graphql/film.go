@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"sakila/sakila-film-service/sakila"
+	"sakila/sakila-film-service/sakila/dataloader"
 	"sync"
 
 	"github.com/graphql-go/graphql"
@@ -16,6 +17,9 @@ var (
 
 // FilmType returns the graphQL film type.
 func FilmType(s sakila.FilmService) *graphql.Object {
+	actorsLoader := dataloader.FilmActorsDataLoader(s)
+	categoriesLoader := dataloader.FilmCategoriesDataLoader(s)
+
 	filmTypeSync.Do(func() {
 		filmType = graphql.NewObject(
 			graphql.ObjectConfig{
@@ -55,6 +59,12 @@ func FilmType(s sakila.FilmService) *graphql.Object {
 					"actors": &graphql.Field{
 						Type:        graphql.NewList(ActorType()),
 						Description: "The film actors.",
+						Resolve:     FilmActorsResolver(actorsLoader),
+					},
+					"categories": &graphql.Field{
+						Type:        graphql.NewList(CategoryType()),
+						Description: "The film categories.",
+						Resolve:     FilmCategoriesResolver(categoriesLoader),
 					},
 					"languageId": &graphql.Field{
 						Type:        graphql.Int,
@@ -120,7 +130,7 @@ func FilmType(s sakila.FilmService) *graphql.Object {
 						Description: "The film rating.",
 					},
 					"specialFeatures": &graphql.Field{
-						Type:        graphql.NewList(graphql.Int),
+						Type:        graphql.NewList(graphql.String),
 						Description: "The film special features.",
 						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 							if film, ok := p.Source.(*sakila.Film); ok {

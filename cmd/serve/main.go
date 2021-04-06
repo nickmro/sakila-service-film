@@ -56,13 +56,11 @@ func main() {
 
 	filmStore := &mysql.FilmDB{DB: db}
 	filmCache := &redis.FilmCache{Client: cache, CacheKeyPrefix: env.GetRedisCacheKeyPrefix()}
-	actorStore := &mysql.ActorDB{DB: db}
 
 	filmService := &app.FilmService{
-		ActorStore: actorStore,
-		FilmCache:  filmCache,
-		FilmStore:  filmStore,
-		Logger:     logger,
+		Cache:  filmCache,
+		Store:  filmStore,
+		Logger: logger,
 	}
 
 	logger.Info("Building GraphQL schema...")

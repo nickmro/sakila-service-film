@@ -10,7 +10,13 @@ type Actor struct {
 	LastUpdate time.Time `json:"last_update"`
 }
 
-// ActorStore defines the operations that may be performed on an actor store.
-type ActorStore interface {
-	QueryFilmActors(filmID int) ([]*Actor, error)
+// FilmActor is a sakila film actor.
+type FilmActor struct {
+	Actor
+	FilmID int
+}
+
+// FilmActorParams are the params for film actors.
+type FilmActorParams struct {
+	FilmIDs []int
 }

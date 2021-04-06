@@ -46,8 +46,33 @@ var _ = Describe("Schema", func() {
 					Length:             intP(86),
 					ReplacementCost:    20.99,
 					Rating:             stringP("PG"),
-					SpecialFeatures:    []uint8{1},
+					SpecialFeatures:    []string{"Documentary"},
 					LastUpdate:         time.Now(),
+				}, nil
+			}
+
+			filmService.GetFilmActorsFn = func(params sakila.FilmActorParams) ([]*sakila.FilmActor, error) {
+				return []*sakila.FilmActor{
+					{
+						FilmID: 1,
+						Actor: sakila.Actor{
+							ActorID:   1,
+							FirstName: "PENELOPE",
+							LastName:  "GUINNESS",
+						},
+					},
+				}, nil
+			}
+
+			filmService.GetFilmCategoriesFn = func(params sakila.FilmCategoryParams) ([]*sakila.FilmCategory, error) {
+				return []*sakila.FilmCategory{
+					{
+						FilmID: 1,
+						Category: sakila.Category{
+							CategoryID: 1,
+							Name:       "Documentary",
+						},
+					},
 				}, nil
 			}
 		})
@@ -69,6 +94,15 @@ var _ = Describe("Schema", func() {
 						rating
 						specialFeatures
 						lastUpdate
+						categories {
+							categoryId
+							name
+						}
+						actors {
+							actorId
+							firstName
+							lastName
+						}
 					}
 				}
 			`
@@ -99,8 +133,17 @@ var _ = Describe("Schema", func() {
 			Expect(*data.Film.Rating).To(Equal("PG"))
 			Expect(data.Film.SpecialFeatures).ToNot(BeNil())
 			Expect(data.Film.SpecialFeatures).To(HaveLen(1))
-			Expect(data.Film.SpecialFeatures[0]).To(Equal(uint8(1)))
+			Expect(data.Film.SpecialFeatures[0]).To(Equal("Documentary"))
 			Expect(data.Film.LastUpdate).ToNot(BeZero())
+			Expect(data.Film.Actors).To(HaveLen(1))
+			Expect(data.Film.Actors[0]).ToNot(BeNil())
+			Expect(data.Film.Actors[0].ActorID).To(Equal(1))
+			Expect(data.Film.Actors[0].FirstName).To(Equal("PENELOPE"))
+			Expect(data.Film.Actors[0].LastName).To(Equal("GUINNESS"))
+			Expect(data.Film.Categories).To(HaveLen(1))
+			Expect(data.Film.Categories[0]).ToNot(BeNil())
+			Expect(data.Film.Categories[0].CategoryID).To(Equal(1))
+			Expect(data.Film.Categories[0].Name).To(Equal("Documentary"))
 		})
 	})
 
@@ -122,8 +165,33 @@ var _ = Describe("Schema", func() {
 						Length:             intP(86),
 						ReplacementCost:    20.99,
 						Rating:             stringP("PG"),
-						SpecialFeatures:    []uint8{1},
+						SpecialFeatures:    []string{"Documentary"},
 						LastUpdate:         time.Now(),
+					},
+				}, nil
+			}
+
+			filmService.GetFilmActorsFn = func(params sakila.FilmActorParams) ([]*sakila.FilmActor, error) {
+				return []*sakila.FilmActor{
+					{
+						FilmID: 1,
+						Actor: sakila.Actor{
+							ActorID:   1,
+							FirstName: "PENELOPE",
+							LastName:  "GUINNESS",
+						},
+					},
+				}, nil
+			}
+
+			filmService.GetFilmCategoriesFn = func(params sakila.FilmCategoryParams) ([]*sakila.FilmCategory, error) {
+				return []*sakila.FilmCategory{
+					{
+						FilmID: 1,
+						Category: sakila.Category{
+							CategoryID: 1,
+							Name:       "Documentary",
+						},
 					},
 				}, nil
 			}
@@ -146,6 +214,15 @@ var _ = Describe("Schema", func() {
 						rating
 						specialFeatures
 						lastUpdate
+						categories {
+							categoryId
+							name
+						}
+						actors {
+							actorId
+							firstName
+							lastName
+						}
 					}
 				}
 			`
@@ -180,8 +257,17 @@ var _ = Describe("Schema", func() {
 			Expect(*film.Rating).To(Equal("PG"))
 			Expect(film.SpecialFeatures).ToNot(BeNil())
 			Expect(film.SpecialFeatures).To(HaveLen(1))
-			Expect(film.SpecialFeatures[0]).To(Equal(uint8(1)))
+			Expect(film.SpecialFeatures[0]).To(Equal("Documentary"))
 			Expect(film.LastUpdate).ToNot(BeZero())
+			Expect(film.Actors).To(HaveLen(1))
+			Expect(film.Actors[0]).ToNot(BeNil())
+			Expect(film.Actors[0].ActorID).To(Equal(1))
+			Expect(film.Actors[0].FirstName).To(Equal("PENELOPE"))
+			Expect(film.Actors[0].LastName).To(Equal("GUINNESS"))
+			Expect(film.Categories).To(HaveLen(1))
+			Expect(film.Categories[0]).ToNot(BeNil())
+			Expect(film.Categories[0].CategoryID).To(Equal(1))
+			Expect(film.Categories[0].Name).To(Equal("Documentary"))
 		})
 
 		Context("when the 'limit', 'offset', and 'category' parameters are provided", func() {
