@@ -13,8 +13,155 @@ type Schema struct {
 }
 
 // NewSchema returns a new graphQL schema.
-func NewSchema(s sakila.FilmService) (*Schema, error) {
-	filmType := FilmType(s)
+func NewSchema(service sakila.FilmService) (*Schema, error) { //nolint:gocyclo
+	actorType := graphql.NewObject(
+		graphql.ObjectConfig{
+			Name:        "Actor",
+			Description: "An Actor is a Sakila film actor.",
+			Fields: graphql.Fields{
+				"actorId": &graphql.Field{
+					Type:        graphql.Int,
+					Description: "The actor ID.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if actor, ok := p.Source.(*sakila.Actor); ok {
+							return actor.ActorID, nil
+						}
+
+						return nil, nil
+					},
+				},
+			},
+		},
+	)
+
+	filmType := graphql.NewObject(
+		graphql.ObjectConfig{
+			Name:        "Film",
+			Description: "A Film is a Sakila film.",
+			Fields: graphql.Fields{
+				"filmId": &graphql.Field{
+					Type:        graphql.Int,
+					Description: "The film ID.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.FilmID, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"title": &graphql.Field{
+					Type:        graphql.String,
+					Description: "The film title.",
+				},
+				"description": &graphql.Field{
+					Type:        graphql.String,
+					Description: "The film description.",
+				},
+				"releaseYear": &graphql.Field{
+					Type:        graphql.Int,
+					Description: "The film release year.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.ReleaseYear, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"actors": &graphql.Field{
+					Type:        graphql.NewList(actorType),
+					Description: "The film actors.",
+					Resolve:     FilmActorsResolver(service),
+				},
+				"languageId": &graphql.Field{
+					Type:        graphql.Int,
+					Description: "The film language ID.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.LanguageID, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"originalLanguageId": &graphql.Field{
+					Type:        graphql.Int,
+					Description: "The film original language ID.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.OriginalLanguageID, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"rentalDuration": &graphql.Field{
+					Type:        graphql.Int,
+					Description: "The film rental duration.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.RentalDuration, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"rentalRate": &graphql.Field{
+					Type:        graphql.Float,
+					Description: "The film rental rate.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.RentalRate, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"length": &graphql.Field{
+					Type:        graphql.Int,
+					Description: "The film length.",
+				},
+				"replacementCost": &graphql.Field{
+					Type:        graphql.Float,
+					Description: "The film replacement cost.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.ReplacementCost, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"rating": &graphql.Field{
+					Type:        graphql.String,
+					Description: "The film rating.",
+				},
+				"specialFeatures": &graphql.Field{
+					Type:        graphql.NewList(graphql.String),
+					Description: "The film special features.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.SpecialFeatures, nil
+						}
+
+						return nil, nil
+					},
+				},
+				"lastUpdate": &graphql.Field{
+					Type:        graphql.DateTime,
+					Description: "The film last update time.",
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						if film, ok := p.Source.(*sakila.Film); ok {
+							return film.LastUpdate, nil
+						}
+
+						return nil, nil
+					},
+				},
+			},
+		},
+	)
 
 	schema, err := graphql.NewSchema(
 		graphql.SchemaConfig{
@@ -31,7 +178,7 @@ func NewSchema(s sakila.FilmService) (*Schema, error) {
 									Description: "The film ID.",
 								},
 							},
-							Resolve: FilmResolver(s),
+							Resolve: FilmResolver(service),
 						},
 						"films": &graphql.Field{
 							Description: "Returns the films for the given parameters",
@@ -43,11 +190,8 @@ func NewSchema(s sakila.FilmService) (*Schema, error) {
 								"offset": &graphql.ArgumentConfig{
 									Type: graphql.Int,
 								},
-								"category": &graphql.ArgumentConfig{
-									Type: graphql.String,
-								},
 							},
-							Resolve: FilmsResolver(s),
+							Resolve: FilmsResolver(service),
 						},
 					},
 				},
@@ -59,38 +203,6 @@ func NewSchema(s sakila.FilmService) (*Schema, error) {
 	}
 
 	return &Schema{Schema: &schema}, nil
-}
-
-// FilmResolver returns the film with the given ID.
-func FilmResolver(s sakila.FilmService) graphql.FieldResolveFn {
-	return func(p graphql.ResolveParams) (i interface{}, e error) {
-		if id, ok := p.Args["filmId"].(int); ok {
-			return s.GetFilm(id)
-		}
-
-		return nil, nil
-	}
-}
-
-// FilmsResolver returns films for the given parameters.
-func FilmsResolver(s sakila.FilmService) graphql.FieldResolveFn {
-	return func(p graphql.ResolveParams) (i interface{}, e error) {
-		params := sakila.FilmQueryParams{}
-
-		if limit, ok := p.Args["limit"].(int); ok {
-			params[sakila.FilmQueryParamLimit] = limit
-		}
-
-		if offset, ok := p.Args["offset"].(int); ok {
-			params[sakila.FilmQueryParamOffset] = offset
-		}
-
-		if category, ok := p.Args["category"].(string); ok {
-			params[sakila.FilmQueryParamCategory] = category
-		}
-
-		return s.GetFilms(params)
-	}
 }
 
 // Request takes a query to return data from the graphQL service.

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sakila/sakila-film-service/sakila/api"
-	"sakila/sakila-film-service/sakila/app"
 	"sakila/sakila-film-service/sakila/config"
 	"sakila/sakila-film-service/sakila/graphql"
 	"sakila/sakila-film-service/sakila/health"
@@ -13,10 +11,11 @@ import (
 	"sakila/sakila-film-service/sakila/mysql"
 	"sakila/sakila-film-service/sakila/redis"
 
+	"github.com/go-chi/chi"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
+func main() { // nolint:gocyclo
 	env, err := config.GetEnv(".env")
 	if err != nil {
 		panic(err)
@@ -27,11 +26,11 @@ func main() {
 		panic(err)
 	}
 
-	logger.Info("Connecting to DB...")
+	fmt.Println("Connecting to DB...")
 
 	db, err := mysql.Open(env.GetMySQLURL())
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
 	//nolint:errcheck
@@ -39,38 +38,48 @@ func main() {
 
 	err = db.Ping()
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
-	logger.Info("Connecting to cache...")
+	fmt.Println("Connecting to cache...")
 
-	cache := redis.NewClient(env.GetRedisURL(), env.GetRedisPassword())
+	redisClient := redis.NewClient(&redis.ClientParams{
+		Host:     env.GetRedisHost(),
+		Port:     env.GetRedisPort(),
+		Password: env.GetRedisPassword(),
+	})
 
 	//nolint:errcheck
-	defer cache.Close()
+	defer redisClient.Close()
 
-	err = cache.Ping(context.Background()).Err()
+	err = redisClient.Ping(context.Background()).Err()
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
-	filmStore := &mysql.FilmDB{DB: db}
-	filmCache := &redis.FilmCache{Client: cache, CacheKeyPrefix: env.GetRedisCacheKeyPrefix()}
+	cache, err := redis.NewCache(redisClient)
+	if err != nil {
+		panic(err)
+	}
 
-	filmService := &app.FilmService{
-		Cache:  filmCache,
-		Store:  filmStore,
+	filmService := &mysql.FilmService{
+		DB:     db,
 		Logger: logger,
 	}
-
-	logger.Info("Building GraphQL schema...")
-
-	graphqlSchema, err := graphql.NewSchema(filmService)
-	if err != nil {
-		logger.Fatal(err)
+	filmCache := &redis.FilmService{
+		FilmService:    filmService,
+		Cache:          cache,
+		CacheKeyPrefix: env.GetRedisKeyPrefix(),
 	}
 
-	logger.Info("Starting health checker...")
+	fmt.Println("Building GraphQL schema...")
+
+	graphqlSchema, err := graphql.NewSchema(filmCache)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Starting health checker...")
 
 	checker, err := health.NewChecker(&health.Checks{
 		DB: &health.Check{
@@ -79,31 +88,30 @@ func main() {
 		},
 		Cache: &health.Check{
 			Name:    "redis",
-			Checker: cache,
+			Checker: redisClient,
 		},
 	})
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
 	if err := checker.Start(); err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
-	router := api.NewRouter(logger)
-	router.Mount("/films", api.NewFilmHandler(filmService))
+	router := chi.NewRouter()
 	router.Mount("/graphql", graphql.NewHandler(graphqlSchema))
 	router.Mount("/healthz", health.NewHandler(checker))
 	router.Mount("/readyz", health.NewHandler(checker))
 
-	logger.Info("Starting server...")
+	fmt.Println("Starting server...")
 
 	addr := fmt.Sprintf(":%s", env.GetPort())
 
-	logger.Info("Listening on", addr)
+	fmt.Println("Listening on", addr)
 
 	if err := http.ListenAndServe(addr, router); err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
 	logger.Flush()

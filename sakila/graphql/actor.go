@@ -1,87 +1,69 @@
 package graphql
 
 import (
+	"context"
 	"sakila/sakila-film-service/sakila"
 	"strconv"
-	"sync"
 
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql"
 )
 
-var (
-	//nolint:gochecknoglobals
-	actorType *graphql.Object
-	//nolint:gochecknoglobals
-	actorTypeSync sync.Once
-)
+// FilmActorsDataLoader loads data for film actors.
+func FilmActorsDataLoader(service sakila.FilmService) *dataloader.Loader {
+	options := []dataloader.Option{
+		dataloader.WithCache(&dataloader.NoCache{}),
+		dataloader.WithBatchCapacity(20),
+	}
 
-// ActorType returns the graphQL actor type.
-func ActorType() *graphql.Object {
-	actorTypeSync.Do(func() {
-		actorType = graphql.NewObject(
-			graphql.ObjectConfig{
-				Name:        "Actor",
-				Description: "An Actor is a Sakila film actor.",
-				Fields: graphql.Fields{
-					"actorId": &graphql.Field{
-						Type:        graphql.Int,
-						Description: "The actor ID.",
-						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-							if actor, ok := p.Source.(*sakila.Actor); ok {
-								return actor.ActorID, nil
-							}
+	return dataloader.NewBatchedLoader(func(
+		ctx context.Context,
+		keys dataloader.Keys,
+	) []*dataloader.Result {
+		filmIDs := make([]int, len(keys))
+		for i := range keys {
+			id, err := strconv.ParseInt(keys[i].String(), 10, 32)
+			if err != nil {
+				return []*dataloader.Result{{Error: err}}
+			}
+			filmIDs[i] = int(id)
+		}
 
-							return nil, nil
-						},
-					},
-					"firstName": &graphql.Field{
-						Type:        graphql.String,
-						Description: "The actor first name.",
-						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-							if actor, ok := p.Source.(*sakila.Actor); ok {
-								return actor.FirstName, nil
-							}
+		actors, err := service.GetFilmActors(ctx, filmIDs...)
+		if err != nil {
+			return []*dataloader.Result{{Error: err}}
+		}
 
-							return nil, nil
-						},
-					},
-					"lastName": &graphql.Field{
-						Type:        graphql.String,
-						Description: "The actor last name.",
-						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-							if actor, ok := p.Source.(*sakila.Actor); ok {
-								return actor.LastName, nil
-							}
+		filmsMap := map[int][]*sakila.Actor{}
+		for _, actor := range actors {
+			if actors := filmsMap[actor.FilmID]; actors != nil {
+				filmsMap[actor.FilmID] = append(actors, &actor.Actor)
+			} else {
+				filmsMap[actor.FilmID] = []*sakila.Actor{&actor.Actor}
+			}
+		}
 
-							return nil, nil
-						},
-					},
-					"lastUpdate": &graphql.Field{
-						Type:        graphql.String,
-						Description: "The actor last updated at time.",
-						Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-							if actor, ok := p.Source.(*sakila.Actor); ok {
-								return actor.LastUpdate, nil
-							}
+		results := make([]*dataloader.Result, len(filmIDs))
+		for i := range filmIDs {
+			if actors, ok := filmsMap[filmIDs[i]]; ok {
+				results[i] = &dataloader.Result{Data: actors}
+			} else {
+				results[i] = &dataloader.Result{Data: []*sakila.Actor{}}
+			}
+		}
 
-							return nil, nil
-						},
-					},
-				},
-			},
-		)
-	})
-
-	return actorType
+		return results
+	}, options...)
 }
 
-// FilmActorsResolver returns a film actors resolver.
-func FilmActorsResolver(loader *dataloader.Loader) graphql.FieldResolveFn {
-	return func(p graphql.ResolveParams) (interface{}, error) {
-		if film, ok := p.Source.(*sakila.Film); ok {
+// FilmActorsResolver returns actors for the given films.
+func FilmActorsResolver(service sakila.FilmService) graphql.FieldResolveFn {
+	loader := FilmActorsDataLoader(service)
+
+	return func(params graphql.ResolveParams) (interface{}, error) {
+		if film, ok := params.Source.(*sakila.Film); ok {
 			key := strconv.Itoa(film.FilmID)
-			thunk := loader.Load(p.Context, dataloader.StringKey(key))
+			thunk := loader.Load(params.Context, dataloader.StringKey(key))
 
 			return func() (interface{}, error) {
 				return thunk()

@@ -60,17 +60,18 @@ The GraphQL schema and documentation may also be viewed by loading the schema in
 ## Environment Variables
 #### Runtime
 | name                   | description                                     | type    | optional | default      |
-|------------------------|-------------------------------------------------|---------|----------|--------------|
+|------------------------|-------------------------------------------------|---------|---------|--------------|
 | PORT                   | The server port                                 | string  | yes      | 3000         |
 | LOGGER                 | The logger type (TEST, DEVELOPMENT, PRODUCTION) | string  | yes      | DEVELOPMENT  |
-| MYSQL_USER             | The database user                               | string  | no       |              |
-| MYSQL_PASSWORD         | The database password                           | string  | no       |              |
+| MYSQL_USER             | The database user                               | string  | yes      |              |
+| MYSQL_PASSWORD         | The database password                           | string  | yes      |              |
 | MYSQL_HOST             | The database host                               | string  | no       |              |
 | MYSQL_PORT             | The database port                               | string  | no       |              |
 | MYSQL_NAME             | The database name                               | string  | no       |              |
-| REDIS_URL              | The cache URL                                   | string  | no       |              |
-| REDIS_PASSWORD         | The cache password                              | string  | no       |              |
-| REDIS_CACHE_KEY_PREFIX | The cache key prefix                            | string  | no       |              |
+| REDIS_HOST             | The cache host                                  | string  | no       |              |
+| REDIS_PORT             | The cache port                                  | string  | no       |              |
+| REDIS_PASSWORD         | The cache password                              | string  | yes      |              |
+| REDIS_KEY_PREFIX       | The cache key prefix                            | string  | no       |              |
 
 ## Test
 

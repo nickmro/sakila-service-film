@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"sakila/sakila-film-service/sakila"
 	"strings"
 
 	"go.uber.org/zap"
@@ -51,8 +52,10 @@ func NewWriter(e Environment) (w *Writer, err error) {
 }
 
 // Error writes an error.
-func (w *Writer) Error(a ...interface{}) {
-	w.Logger.Error(joinArgs(a...))
+func (w *Writer) Error(err error) {
+	if _, ok := err.(sakila.Error); !ok {
+		w.Logger.Error(err.Error())
+	}
 }
 
 // Info writes info.

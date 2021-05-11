@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sakila/sakila-film-service/sakila"
@@ -10,236 +9,150 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/cache/v8"
 )
 
-// FilmCache is a Redis film cache.
-type FilmCache struct {
-	Client         *Client
+// FilmService is a cached film service.
+type FilmService struct {
+	sakila.FilmService
+	Cache          *cache.Cache
 	CacheKeyPrefix string
+	TTL            time.Duration
+	Logger         sakila.Logger
 }
 
-const (
-	timeoutDuration    = time.Second * 5
-	expirationDuration = time.Minute * 5
-)
-
 // GetFilm returns a film from the cache.
-func (c *FilmCache) GetFilm(id int) (*sakila.Film, error) {
+func (service *FilmService) GetFilm(ctx context.Context, id int) (*sakila.Film, error) {
 	var film sakila.Film
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
+	item := &cache.Item{
+		Ctx:   ctx,
+		Key:   service.filmCacheKey(id),
+		Value: &film,
+		Do: func(i *cache.Item) (interface{}, error) {
+			return service.FilmService.GetFilm(ctx, id)
+		},
+		TTL: service.TTL,
+	}
 
-	val, err := c.Client.Get(ctx, filmCacheKey(c.CacheKeyPrefix, id)).Result()
-	if errors.Is(err, redis.Nil) {
+	err := service.Cache.Once(item)
+	if err != nil && errors.Is(err, sakila.ErrorNotFound) {
 		return nil, sakila.ErrorNotFound
 	} else if err != nil {
-		return nil, err
+		service.logError(err)
+		return nil, sakila.ErrorInternal
 	}
 
-	if err := json.Unmarshal([]byte(val), &film); err != nil {
-		return nil, err
-	}
-
-	return &film, nil
+	return &film, err
 }
 
 // GetFilms returns films from the cache.
-func (c *FilmCache) GetFilms(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
+func (service *FilmService) GetFilms(ctx context.Context, params sakila.FilmParams) ([]*sakila.Film, error) {
 	var films []*sakila.Film
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
+	item := &cache.Item{
+		Ctx:   ctx,
+		Key:   service.filmsCacheKey(params),
+		Value: &films,
+		Do: func(i *cache.Item) (interface{}, error) {
+			return service.FilmService.GetFilms(ctx, params)
+		},
+		TTL: service.TTL,
+	}
 
-	val, err := c.Client.Get(ctx, filmsCacheKey(c.CacheKeyPrefix, params)).Result()
-	if errors.Is(err, redis.Nil) {
+	err := service.Cache.Once(item)
+	if err != nil && errors.Is(err, sakila.ErrorNotFound) {
 		return nil, sakila.ErrorNotFound
 	} else if err != nil {
-		return nil, err
+		service.logError(err)
+		return nil, sakila.ErrorInternal
 	}
 
-	if err := json.Unmarshal([]byte(val), &films); err != nil {
-		return nil, err
-	}
-
-	return films, nil
+	return films, err
 }
 
 // GetFilmActors returns film actors from the cache.
-func (c *FilmCache) GetFilmActors(params sakila.FilmActorParams) ([]*sakila.FilmActor, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
-
-	val, err := c.Client.Get(ctx, filmActorsCacheKey(c.CacheKeyPrefix, params)).Result()
-	if errors.Is(err, redis.Nil) {
-		return nil, sakila.ErrorNotFound
-	} else if err != nil {
-		return nil, err
-	}
-
+func (service *FilmService) GetFilmActors(ctx context.Context, filmIDs ...int) ([]*sakila.FilmActor, error) {
 	var actors []*sakila.FilmActor
-	if err := json.Unmarshal([]byte(val), &actors); err != nil {
-		return nil, err
+
+	item := &cache.Item{
+		Ctx:   ctx,
+		Key:   service.actorsCacheKey(filmIDs...),
+		Value: &actors,
+		Do: func(i *cache.Item) (interface{}, error) {
+			return service.FilmService.GetFilmActors(ctx, filmIDs...)
+		},
+		TTL: service.TTL,
 	}
 
-	return actors, nil
-}
-
-// GetFilmCategories returns film categories from the cache.
-func (c *FilmCache) GetFilmCategories(params sakila.FilmCategoryParams) ([]*sakila.FilmCategory, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
-
-	val, err := c.Client.Get(ctx, filmCategoriesCacheKey(c.CacheKeyPrefix, params)).Result()
-	if errors.Is(err, redis.Nil) {
+	err := service.Cache.Once(item)
+	if err != nil && errors.Is(err, sakila.ErrorNotFound) {
 		return nil, sakila.ErrorNotFound
 	} else if err != nil {
-		return nil, err
+		service.logError(err)
+		return nil, sakila.ErrorInternal
 	}
 
-	var categories []*sakila.FilmCategory
-	if err := json.Unmarshal([]byte(val), &categories); err != nil {
-		return nil, err
-	}
-
-	return categories, nil
+	return actors, err
 }
 
-// SetFilm sets the film in the cache.
-func (c *FilmCache) SetFilm(film *sakila.Film) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
-
-	val, err := marshal(film)
-	if err != nil {
-		return err
+func (service *FilmService) logError(err error) {
+	if logger := service.Logger; logger != nil {
+		logger.Error(err)
 	}
-
-	return c.Client.Set(ctx, filmCacheKey(c.CacheKeyPrefix, film.FilmID), val, expirationDuration).Err()
 }
 
-// SetFilms sets the films in the cache.
-func (c *FilmCache) SetFilms(films []*sakila.Film, params sakila.FilmQueryParams) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
-
-	val, err := marshal(films)
-	if err != nil {
-		return err
+func (service *FilmService) cacheKey(key string) string {
+	if prefix := service.CacheKeyPrefix; prefix != "" {
+		return prefix + "::" + key
 	}
 
-	return c.Client.Set(ctx, filmsCacheKey(c.CacheKeyPrefix, params), val, expirationDuration).Err()
+	return key
 }
 
-// SetFilmActors sets the film actors in the cache.
-func (c *FilmCache) SetFilmActors(actors []*sakila.FilmActor, params sakila.FilmActorParams) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
-
-	val, err := marshal(actors)
-	if err != nil {
-		return err
-	}
-
-	return c.Client.Set(ctx, filmActorsCacheKey(c.CacheKeyPrefix, params), val, expirationDuration).Err()
+func (service *FilmService) filmCacheKey(id int) string {
+	key := hashedKey("film::id:" + strconv.Itoa(id))
+	return service.cacheKey(key)
 }
 
-// SetFilmCategories sets the film categories in the cache.
-func (c *FilmCache) SetFilmCategories(categories []*sakila.FilmCategory, params sakila.FilmCategoryParams) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
-	defer cancel()
-
-	val, err := marshal(categories)
-	if err != nil {
-		return err
-	}
-
-	return c.Client.Set(ctx, filmCategoriesCacheKey(c.CacheKeyPrefix, params), val, expirationDuration).Err()
-}
-
-func filmCacheKey(prefix string, id int) string {
+func (service *FilmService) filmsCacheKey(params sakila.FilmParams) string {
 	b := strings.Builder{}
 
-	if prefix != "" {
-		b.WriteString(prefix)
-		b.WriteString("::")
-	}
+	b.WriteString("films::")
 
-	b.WriteString(fmt.Sprintf("film::id:%d", id))
+	if ids := params.FilmIDs; len(ids) > 0 {
+		b.WriteString("::ids:")
 
-	return b.String()
-}
-
-func filmsCacheKey(prefix string, params sakila.FilmQueryParams) string {
-	b := strings.Builder{}
-
-	if prefix != "" {
-		b.WriteString(prefix)
-		b.WriteString("::")
-	}
-
-	b.WriteString("films")
-
-	if limit, ok := params[sakila.FilmQueryParamLimit].(int); ok {
-		b.WriteString(fmt.Sprintf("::limit:%d", limit))
-	}
-
-	if offset, ok := params[sakila.FilmQueryParamOffset].(int); ok {
-		b.WriteString(fmt.Sprintf("::offset:%d", offset))
-	}
-
-	if category, ok := params[sakila.FilmQueryParamCategory].(string); ok {
-		b.WriteString("::category:")
-		b.WriteString(category)
-	}
-
-	return b.String()
-}
-
-func filmActorsCacheKey(prefix string, params sakila.FilmActorParams) string {
-	b := strings.Builder{}
-	b.WriteString(prefix)
-	b.WriteString("::actors")
-
-	if len(params.FilmIDs) > 0 {
-		b.WriteString("::film_id:")
-
-		ids := make([]string, len(params.FilmIDs))
 		for i := range ids {
-			ids[i] = strconv.Itoa(params.FilmIDs[i])
+			if i > 0 {
+				b.WriteString(",")
+			}
+
+			b.WriteString(strconv.Itoa(ids[i]))
+		}
+	}
+
+	if limit := params.Limit; limit > 0 {
+		b.WriteString("::limit:" + strconv.Itoa(limit))
+	}
+
+	if offset := params.Offset; offset > 0 {
+		b.WriteString(fmt.Sprintf("::offset:" + strconv.Itoa(offset)))
+	}
+
+	return service.cacheKey(hashedKey(b.String()))
+}
+
+func (service *FilmService) actorsCacheKey(filmIDs ...int) string {
+	b := strings.Builder{}
+
+	for i := range filmIDs {
+		if i > 0 {
+			b.WriteString(",")
 		}
 
-		b.WriteString(strings.Join(ids, ","))
+		b.WriteString("::film_ids:" + strconv.Itoa(filmIDs[i]))
 	}
 
-	return b.String()
-}
-
-func filmCategoriesCacheKey(prefix string, params sakila.FilmCategoryParams) string {
-	b := strings.Builder{}
-	b.WriteString(prefix)
-	b.WriteString("::categories")
-
-	if len(params.FilmIDs) > 0 {
-		b.WriteString("::film_id:")
-
-		ids := make([]string, len(params.FilmIDs))
-		for i := range ids {
-			ids[i] = strconv.Itoa(params.FilmIDs[i])
-		}
-
-		b.WriteString(strings.Join(ids, ","))
-	}
-
-	return b.String()
-}
-
-func marshal(v interface{}) (string, error) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return "", err
-	}
-
-	return string(b), err
+	return service.cacheKey(hashedKey(b.String()))
 }

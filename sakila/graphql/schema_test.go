@@ -1,6 +1,7 @@
 package graphql_test
 
 import (
+	"context"
 	"encoding/json"
 	"sakila/sakila-film-service/sakila"
 	"sakila/sakila-film-service/sakila/graphql"
@@ -12,8 +13,8 @@ import (
 )
 
 type Data struct {
-	Film  *Film   `json:"film,omitempty"`
-	Films []*Film `json:"films,omitempty"`
+	Film  *sakila.Film   `json:"film,omitempty"`
+	Films []*sakila.Film `json:"films,omitempty"`
 }
 
 var _ = Describe("Schema", func() {
@@ -31,7 +32,7 @@ var _ = Describe("Schema", func() {
 
 	Describe("film", func() {
 		BeforeEach(func() {
-			filmService.GetFilmFn = func(filmID int) (*sakila.Film, error) {
+			filmService.GetFilmFn = func(ctx context.Context, filmIDs int) (*sakila.Film, error) {
 				return &sakila.Film{
 					FilmID: 1,
 					Title:  "ACADEMY DINOSAUR",
@@ -51,26 +52,12 @@ var _ = Describe("Schema", func() {
 				}, nil
 			}
 
-			filmService.GetFilmActorsFn = func(params sakila.FilmActorParams) ([]*sakila.FilmActor, error) {
+			filmService.GetFilmActorsFn = func(ctx context.Context, filmIDs ...int) ([]*sakila.FilmActor, error) {
 				return []*sakila.FilmActor{
 					{
 						FilmID: 1,
 						Actor: sakila.Actor{
-							ActorID:   1,
-							FirstName: "PENELOPE",
-							LastName:  "GUINNESS",
-						},
-					},
-				}, nil
-			}
-
-			filmService.GetFilmCategoriesFn = func(params sakila.FilmCategoryParams) ([]*sakila.FilmCategory, error) {
-				return []*sakila.FilmCategory{
-					{
-						FilmID: 1,
-						Category: sakila.Category{
-							CategoryID: 1,
-							Name:       "Documentary",
+							ActorID: 1,
 						},
 					},
 				}, nil
@@ -94,14 +81,8 @@ var _ = Describe("Schema", func() {
 						rating
 						specialFeatures
 						lastUpdate
-						categories {
-							categoryId
-							name
-						}
 						actors {
 							actorId
-							firstName
-							lastName
 						}
 					}
 				}
@@ -136,20 +117,13 @@ var _ = Describe("Schema", func() {
 			Expect(data.Film.SpecialFeatures[0]).To(Equal("Documentary"))
 			Expect(data.Film.LastUpdate).ToNot(BeZero())
 			Expect(data.Film.Actors).To(HaveLen(1))
-			Expect(data.Film.Actors[0]).ToNot(BeNil())
 			Expect(data.Film.Actors[0].ActorID).To(Equal(1))
-			Expect(data.Film.Actors[0].FirstName).To(Equal("PENELOPE"))
-			Expect(data.Film.Actors[0].LastName).To(Equal("GUINNESS"))
-			Expect(data.Film.Categories).To(HaveLen(1))
-			Expect(data.Film.Categories[0]).ToNot(BeNil())
-			Expect(data.Film.Categories[0].CategoryID).To(Equal(1))
-			Expect(data.Film.Categories[0].Name).To(Equal("Documentary"))
 		})
 	})
 
 	Describe("films", func() {
 		BeforeEach(func() {
-			filmService.GetFilmsFn = func(_ sakila.FilmQueryParams) ([]*sakila.Film, error) {
+			filmService.GetFilmsFn = func(ctx context.Context, params sakila.FilmParams) ([]*sakila.Film, error) {
 				return []*sakila.Film{
 					{
 						FilmID: 1,
@@ -171,26 +145,12 @@ var _ = Describe("Schema", func() {
 				}, nil
 			}
 
-			filmService.GetFilmActorsFn = func(params sakila.FilmActorParams) ([]*sakila.FilmActor, error) {
+			filmService.GetFilmActorsFn = func(ctx context.Context, filmIDs ...int) ([]*sakila.FilmActor, error) {
 				return []*sakila.FilmActor{
 					{
 						FilmID: 1,
 						Actor: sakila.Actor{
-							ActorID:   1,
-							FirstName: "PENELOPE",
-							LastName:  "GUINNESS",
-						},
-					},
-				}, nil
-			}
-
-			filmService.GetFilmCategoriesFn = func(params sakila.FilmCategoryParams) ([]*sakila.FilmCategory, error) {
-				return []*sakila.FilmCategory{
-					{
-						FilmID: 1,
-						Category: sakila.Category{
-							CategoryID: 1,
-							Name:       "Documentary",
+							ActorID: 1,
 						},
 					},
 				}, nil
@@ -200,7 +160,7 @@ var _ = Describe("Schema", func() {
 		It("returns the films", func() {
 			query := `
 				{
-					films(category: "Antimation") {
+					films {
 						filmId
 						title
 						description
@@ -214,14 +174,8 @@ var _ = Describe("Schema", func() {
 						rating
 						specialFeatures
 						lastUpdate
-						categories {
-							categoryId
-							name
-						}
 						actors {
 							actorId
-							firstName
-							lastName
 						}
 					}
 				}
@@ -260,33 +214,24 @@ var _ = Describe("Schema", func() {
 			Expect(film.SpecialFeatures[0]).To(Equal("Documentary"))
 			Expect(film.LastUpdate).ToNot(BeZero())
 			Expect(film.Actors).To(HaveLen(1))
-			Expect(film.Actors[0]).ToNot(BeNil())
 			Expect(film.Actors[0].ActorID).To(Equal(1))
-			Expect(film.Actors[0].FirstName).To(Equal("PENELOPE"))
-			Expect(film.Actors[0].LastName).To(Equal("GUINNESS"))
-			Expect(film.Categories).To(HaveLen(1))
-			Expect(film.Categories[0]).ToNot(BeNil())
-			Expect(film.Categories[0].CategoryID).To(Equal(1))
-			Expect(film.Categories[0].Name).To(Equal("Documentary"))
 		})
 
 		Context("when the 'limit', 'offset', and 'category' parameters are provided", func() {
 			It("passes them to the film service", func() {
 				var limit int
 				var offset int
-				var category string
 
-				filmService.GetFilmsFn = func(params sakila.FilmQueryParams) ([]*sakila.Film, error) {
-					limit = params[sakila.FilmQueryParamLimit].(int)
-					offset = params[sakila.FilmQueryParamOffset].(int)
-					category = params[sakila.FilmQueryParamCategory].(string)
+				filmService.GetFilmsFn = func(ctx context.Context, params sakila.FilmParams) ([]*sakila.Film, error) {
+					limit = params.Limit
+					offset = params.Offset
 
 					return []*sakila.Film{{}}, nil
 				}
 
 				query := `
 					{
-						films(limit: 20, offset: 100, category: "Animation") {
+						films(limit: 20, offset: 100) {
 							filmId
 						}
 					}
@@ -296,7 +241,6 @@ var _ = Describe("Schema", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(limit).To(Equal(20))
 				Expect(offset).To(Equal(100))
-				Expect(category).To(Equal("Animation"))
 			})
 		})
 	})

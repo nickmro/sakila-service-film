@@ -8,16 +8,17 @@ import (
 
 // Env represents the application environment.
 type Env struct {
-	logger              string
-	mySQLHost           string
-	mySQLName           string
-	mySQLPassword       string
-	mySQLPort           string
-	mySQLUser           string
-	port                string
-	redisPassword       string
-	redisURL            string
-	redisCacheKeyPrefix string
+	logger         string
+	mySQLHost      string
+	mySQLName      string
+	mySQLPassword  string
+	mySQLPort      string
+	mySQLUser      string
+	port           string
+	redisHost      string
+	redisPassword  string
+	redisPort      int
+	redisKeyPrefix string
 }
 
 const (
@@ -26,16 +27,17 @@ const (
 )
 
 const (
-	envKeyLogger              = "LOGGER"
-	envKeyMySQLHost           = "MYSQL_HOST"
-	envKeyMySQLName           = "MYSQL_NAME"
-	envKeyMySQLPassword       = "MYSQL_PASSWORD"
-	envKeyMySQLPort           = "MYSQL_PORT"
-	envKeyMySQLUser           = "MYSQL_USER"
-	envKeyPort                = "PORT"
-	envKeyRedisURL            = "REDIS_URL"
-	envKeyRedisPassword       = "REDIS_PASSWORD"
-	envKeyRedisCacheKeyPrefix = "REDIS_CACHE_KEY_PREFIX"
+	envKeyLogger         = "LOGGER"
+	envKeyMySQLHost      = "MYSQL_HOST"
+	envKeyMySQLName      = "MYSQL_NAME"
+	envKeyMySQLPassword  = "MYSQL_PASSWORD"
+	envKeyMySQLPort      = "MYSQL_PORT"
+	envKeyMySQLUser      = "MYSQL_USER"
+	envKeyPort           = "PORT"
+	envKeyRedisHost      = "REDIS_HOST"
+	envKeyRedisPassword  = "REDIS_PASSWORD"
+	envKeyRedisPort      = "REDIS_PORT"
+	envKeyRedisKeyPrefix = "REDIS_KEY_PREFIX"
 )
 
 const (
@@ -79,14 +81,19 @@ func GetEnv(fileName string) (*Env, error) {
 
 	mySQLUser := v.GetString(envKeyMySQLUser)
 
-	redisURL := v.GetString(envKeyRedisURL)
-	if redisURL == "" {
-		return nil, missingEnvError(envKeyRedisURL)
+	redisHost := v.GetString(envKeyRedisHost)
+	if redisHost == "" {
+		return nil, missingEnvError(envKeyRedisHost)
+	}
+
+	redisPort := v.GetInt(envKeyRedisPort)
+	if redisPort == 0 {
+		return nil, missingEnvError(envKeyRedisPort)
 	}
 
 	redisPassword := v.GetString(envKeyRedisPassword)
 
-	redisCacheKeyPrefix := v.GetString(envKeyRedisCacheKeyPrefix)
+	redisKeyPrefix := v.GetString(envKeyRedisKeyPrefix)
 
 	port := v.GetString(envKeyPort)
 	if port == "" {
@@ -94,16 +101,17 @@ func GetEnv(fileName string) (*Env, error) {
 	}
 
 	env := &Env{
-		logger:              logger,
-		mySQLHost:           mySQLHost,
-		mySQLName:           mySQLName,
-		mySQLPassword:       mySQLPassword,
-		mySQLPort:           mySQLPort,
-		mySQLUser:           mySQLUser,
-		port:                port,
-		redisPassword:       redisPassword,
-		redisURL:            redisURL,
-		redisCacheKeyPrefix: redisCacheKeyPrefix,
+		logger:         logger,
+		mySQLHost:      mySQLHost,
+		mySQLName:      mySQLName,
+		mySQLPassword:  mySQLPassword,
+		mySQLPort:      mySQLPort,
+		mySQLUser:      mySQLUser,
+		port:           port,
+		redisHost:      redisHost,
+		redisPassword:  redisPassword,
+		redisPort:      redisPort,
+		redisKeyPrefix: redisKeyPrefix,
 	}
 
 	return env, nil
@@ -126,9 +134,14 @@ func (e *Env) GetMySQLURL() string {
 		e.mySQLName)
 }
 
-// GetRedisURL returns the Redis URL.
-func (e *Env) GetRedisURL() string {
-	return e.redisURL
+// GetRedisHost returns the Redis host.
+func (e *Env) GetRedisHost() string {
+	return e.redisHost
+}
+
+// GetRedisPort returns the Redis port.
+func (e *Env) GetRedisPort() int {
+	return e.redisPort
 }
 
 // GetRedisPassword returs the Redis password.
@@ -146,9 +159,9 @@ func (e *Env) GetPort() string {
 	return e.port
 }
 
-// GetRedisCacheKeyPrefix returns the redis cache key prefix.
-func (e *Env) GetRedisCacheKeyPrefix() string {
-	return e.redisCacheKeyPrefix
+// GetRedisKeyPrefix returns the redis cache key prefix.
+func (e *Env) GetRedisKeyPrefix() string {
+	return e.redisKeyPrefix
 }
 
 func missingEnvError(key string) error {
