@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sakila/sakila-film-service/sakila"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nickmro/sakila-service-film/sakila"
 
 	"github.com/go-redis/cache/v8"
 )

@@ -2,8 +2,9 @@ package log
 
 import (
 	"fmt"
-	"sakila/sakila-film-service/sakila"
 	"strings"
+
+	"github.com/nickmro/sakila-service-film/sakila"
 
 	"go.uber.org/zap"
 )

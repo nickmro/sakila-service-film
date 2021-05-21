@@ -2,8 +2,9 @@ package graphql
 
 import (
 	"context"
-	"sakila/sakila-film-service/sakila"
 	"strconv"
+
+	"github.com/nickmro/sakila-service-film/sakila"
 
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql"

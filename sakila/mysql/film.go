@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"sakila/sakila-film-service/sakila"
-	"sakila/sakila-film-service/sakila/mysql/sqlbuilder"
 	"strings"
+
+	"github.com/nickmro/mrqb"
+	"github.com/nickmro/sakila-service-film/sakila"
 )
 
 // FilmService is a film service backed by a MySQL DB.
@@ -109,13 +110,17 @@ func (service *FilmService) GetFilms(ctx context.Context, params sakila.FilmPara
 func (service *FilmService) GetFilmActors(ctx context.Context, filmIDs ...int) ([]*sakila.FilmActor, error) {
 	actors := []*sakila.FilmActor{}
 
-	stmt := sqlbuilder.Select(
+	stmt := mrqb.Select(
 		"film_id",
 		"actor_id",
 	).
 		From("film_actor")
 
-	stmt.Where("film_actor.film_id IN (%v)", formattedIDs(filmIDs)...)
+	if len(filmIDs) == 1 {
+		stmt.Where("film_actor.film_id = %v", filmIDs[0])
+	} else {
+		stmt.Where("film_actor.film_id IN (%v)", formattedIDs(filmIDs)...)
+	}
 
 	query, args := stmt.Build()
 
@@ -158,7 +163,7 @@ func (service *FilmService) logError(err error) {
 }
 
 func filmQueryForParams(params sakila.FilmParams) (query string, args []interface{}) {
-	stmt := sqlbuilder.Select(
+	stmt := mrqb.Select(
 		"film.film_id",
 		"film.title",
 		"film.description",
@@ -176,7 +181,11 @@ func filmQueryForParams(params sakila.FilmParams) (query string, args []interfac
 		From("film")
 
 	if ids := params.FilmIDs; len(ids) > 0 {
-		stmt.Where("film.film_id IN (%v)", formattedIDs(ids)...)
+		if len(ids) == 1 {
+			stmt.Where("film.film_id = %v", ids[0])
+		} else {
+			stmt.Where("film.film_id IN (%v)", formattedIDs(ids)...)
+		}
 	}
 
 	if limit := params.Limit; limit > 0 {

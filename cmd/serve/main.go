@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sakila/sakila-film-service/sakila/config"
-	"sakila/sakila-film-service/sakila/graphql"
-	"sakila/sakila-film-service/sakila/health"
-	"sakila/sakila-film-service/sakila/log"
-	"sakila/sakila-film-service/sakila/mysql"
-	"sakila/sakila-film-service/sakila/redis"
+
+	"github.com/nickmro/sakila-service-film/sakila/config"
+	"github.com/nickmro/sakila-service-film/sakila/graphql"
+	"github.com/nickmro/sakila-service-film/sakila/health"
+	"github.com/nickmro/sakila-service-film/sakila/log"
+	"github.com/nickmro/sakila-service-film/sakila/mysql"
+	"github.com/nickmro/sakila-service-film/sakila/redis"
 
 	"github.com/go-chi/chi"
 	_ "github.com/go-sql-driver/mysql"
@@ -26,8 +27,6 @@ func main() { // nolint:gocyclo
 		panic(err)
 	}
 
-	fmt.Println("Connecting to DB...")
-
 	db, err := mysql.Open(env.GetMySQLURL())
 	if err != nil {
 		panic(err)
@@ -40,8 +39,6 @@ func main() { // nolint:gocyclo
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Connecting to cache...")
 
 	redisClient := redis.NewClient(&redis.ClientParams{
 		Host:     env.GetRedisHost(),
@@ -72,14 +69,10 @@ func main() { // nolint:gocyclo
 		CacheKeyPrefix: env.GetRedisKeyPrefix(),
 	}
 
-	fmt.Println("Building GraphQL schema...")
-
 	graphqlSchema, err := graphql.NewSchema(filmCache)
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Starting health checker...")
 
 	checker, err := health.NewChecker(&health.Checks{
 		DB: &health.Check{
@@ -103,8 +96,6 @@ func main() { // nolint:gocyclo
 	router.Mount("/graphql", graphql.NewHandler(graphqlSchema))
 	router.Mount("/healthz", health.NewHandler(checker))
 	router.Mount("/readyz", health.NewHandler(checker))
-
-	fmt.Println("Starting server...")
 
 	addr := fmt.Sprintf(":%s", env.GetPort())
 

@@ -3,10 +3,11 @@ package graphql_test
 import (
 	"context"
 	"encoding/json"
-	"sakila/sakila-film-service/sakila"
-	"sakila/sakila-film-service/sakila/graphql"
-	"sakila/sakila-film-service/sakila/mock"
 	"time"
+
+	"github.com/nickmro/sakila-service-film/sakila"
+	"github.com/nickmro/sakila-service-film/sakila/graphql"
+	"github.com/nickmro/sakila-service-film/sakila/mock"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

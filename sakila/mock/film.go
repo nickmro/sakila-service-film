@@ -2,7 +2,8 @@ package mock
 
 import (
 	"context"
-	"sakila/sakila-film-service/sakila"
+
+	"github.com/nickmro/sakila-service-film/sakila"
 )
 
 // FilmService is a mock film service.

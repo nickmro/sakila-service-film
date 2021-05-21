@@ -2,7 +2,8 @@ package graphql
 
 import (
 	"encoding/json"
-	"sakila/sakila-film-service/sakila"
+
+	"github.com/nickmro/sakila-service-film/sakila"
 
 	"github.com/graphql-go/graphql"
 )

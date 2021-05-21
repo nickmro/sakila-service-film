@@ -1,4 +1,4 @@
-module sakila/sakila-film-service
+module github.com/nickmro/sakila-service-film
 
 go 1.13
 
@@ -9,11 +9,11 @@ require (
 	github.com/go-redis/cache/v8 v8.4.0
 	github.com/go-redis/redis/v8 v8.8.2
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gocraft/dbr v0.0.0-20190714181702-8114670a83bd
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/graphql-go/graphql v0.7.9
 	github.com/graphql-go/handler v0.2.3
 	github.com/kr/pretty v0.2.1 // indirect
+	github.com/nickmro/mrqb v0.0.0-20210521191352-2525b8ae7c75 // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
