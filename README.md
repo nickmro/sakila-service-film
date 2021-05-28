@@ -9,7 +9,6 @@ This project has been built as an example of how to build a microservice around 
 
 ## Features
 
-- REST API
 - GraphQL API
 
 ## Installation
