@@ -193,6 +193,8 @@ github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3Rllmb
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/nickmro/mrqb v0.0.0-20210521191352-2525b8ae7c75 h1:pGiD2tMyGeTY+D75JHsf2DJNPNnzhw/nBaBm1kBEIkA=
 github.com/nickmro/mrqb v0.0.0-20210521191352-2525b8ae7c75/go.mod h1:DOvkSi0Iy+DEHhG+dqnW0E0MF9NIKsHg3y39nfi+9dU=
+github.com/nickmro/mrqb v0.0.0-20210528231604-00d597342c49 h1:2M2MHOfKG3rPP5/15hSl1W05NnJF4iUj5GW1n4nyyh8=
+github.com/nickmro/mrqb v0.0.0-20210528231604-00d597342c49/go.mod h1:DOvkSi0Iy+DEHhG+dqnW0E0MF9NIKsHg3y39nfi+9dU=
 github.com/nxadm/tail v1.4.4 h1:DQuhQpB1tVlglWS2hLQ5OV6B5r8aGxSrPc5Qo6uTN78=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=

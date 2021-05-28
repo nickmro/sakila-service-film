@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/nickmro/sakila-service-film/sakila/config"
 	"github.com/nickmro/sakila-service-film/sakila/graphql"
 	"github.com/nickmro/sakila-service-film/sakila/health"
+	"github.com/nickmro/sakila-service-film/sakila/http"
 	"github.com/nickmro/sakila-service-film/sakila/log"
 	"github.com/nickmro/sakila-service-film/sakila/mysql"
 	"github.com/nickmro/sakila-service-film/sakila/redis"
@@ -88,6 +88,7 @@ func main() {
 	}
 
 	router := chi.NewRouter()
+	router.Use(http.RequestLogger(logger))
 	router.Mount("/graphql", graphql.NewHandler(graphqlSchema))
 	router.Mount("/healthz", health.NewHandler(checker))
 	router.Mount("/readyz", health.NewHandler(checker))

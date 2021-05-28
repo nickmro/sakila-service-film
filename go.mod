@@ -13,7 +13,7 @@ require (
 	github.com/graphql-go/graphql v0.7.9
 	github.com/graphql-go/handler v0.2.3
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/nickmro/mrqb v0.0.0-20210521191352-2525b8ae7c75 // indirect
+	github.com/nickmro/mrqb v0.0.0-20210528231604-00d597342c49 // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
