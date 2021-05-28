@@ -71,6 +71,8 @@ func (service *FilmService) GetFilms(ctx context.Context, params sakila.FilmPara
 		return nil, sakila.ErrorInternal
 	}
 
+	defer rows.Close() //nolint:errcheck
+
 	for rows.Next() {
 		var film sakila.Film
 		var specialFeatures string
@@ -97,10 +99,6 @@ func (service *FilmService) GetFilms(ctx context.Context, params sakila.FilmPara
 		film.SpecialFeatures = strings.Split(specialFeatures, ",")
 
 		films = append(films, &film)
-	}
-
-	if err := rows.Close(); err != nil {
-		service.logError(err)
 	}
 
 	return films, nil
@@ -135,6 +133,8 @@ func (service *FilmService) GetFilmActors(ctx context.Context, filmIDs ...int) (
 		return nil, sakila.ErrorInternal
 	}
 
+	defer rows.Close() //nolint:errcheck
+
 	for rows.Next() {
 		var actor sakila.FilmActor
 
@@ -147,10 +147,6 @@ func (service *FilmService) GetFilmActors(ctx context.Context, filmIDs ...int) (
 		}
 
 		actors = append(actors, &actor)
-	}
-
-	if err := rows.Close(); err != nil {
-		service.logError(err)
 	}
 
 	return actors, nil

@@ -14,26 +14,19 @@ type Checker struct {
 const intervalDuration = time.Second * 5
 
 // NewChecker returns a new health checker.
-func NewChecker(c *Checks) (*Checker, error) {
+func NewChecker(checks []*Check) (*Checker, error) {
 	checker := health.New()
 	checker.DisableLogging()
 
-	if err := checker.AddCheck(&health.Config{
-		Name:     c.DB.Name,
-		Checker:  c.DB.Checker,
-		Interval: intervalDuration,
-		Fatal:    true,
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := checker.AddCheck(&health.Config{
-		Name:     c.Cache.Name,
-		Checker:  c.Cache.Checker,
-		Interval: intervalDuration,
-		Fatal:    true,
-	}); err != nil {
-		return nil, err
+	for i := range checks {
+		if err := checker.AddCheck(&health.Config{
+			Name:     checks[i].Name,
+			Checker:  checks[i].Checker,
+			Interval: intervalDuration,
+			Fatal:    true,
+		}); err != nil {
+			return nil, err
+		}
 	}
 
 	return &Checker{Health: checker}, nil

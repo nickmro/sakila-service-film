@@ -16,7 +16,7 @@ import (
 // FilmService is a cached film service.
 type FilmService struct {
 	sakila.FilmService
-	Cache          *cache.Cache
+	Cache          *Cache
 	CacheKeyPrefix string
 	TTL            time.Duration
 	Logger         sakila.Logger

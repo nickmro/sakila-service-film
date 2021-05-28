@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -16,7 +15,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() { // nolint:gocyclo
+func main() {
 	env, err := config.GetEnv(".env")
 	if err != nil {
 		panic(err)
@@ -26,6 +25,8 @@ func main() { // nolint:gocyclo
 	if err != nil {
 		panic(err)
 	}
+
+	defer logger.Flush()
 
 	db, err := mysql.Open(env.GetMySQLURL())
 	if err != nil {
@@ -40,31 +41,25 @@ func main() { // nolint:gocyclo
 		panic(err)
 	}
 
-	redisClient := redis.NewClient(&redis.ClientParams{
+	cache, err := redis.NewCache(&redis.ClientParams{
 		Host:     env.GetRedisHost(),
 		Port:     env.GetRedisPort(),
 		Password: env.GetRedisPassword(),
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	//nolint:errcheck
-	defer redisClient.Close()
+	defer cache.Close()
 
-	err = redisClient.Ping(context.Background()).Err()
-	if err != nil {
-		panic(err)
-	}
-
-	cache, err := redis.NewCache(redisClient)
-	if err != nil {
-		panic(err)
-	}
-
-	filmService := &mysql.FilmService{
+	filmDB := &mysql.FilmService{
 		DB:     db,
 		Logger: logger,
 	}
+
 	filmCache := &redis.FilmService{
-		FilmService:    filmService,
+		FilmService:    filmDB,
 		Cache:          cache,
 		CacheKeyPrefix: env.GetRedisKeyPrefix(),
 	}
@@ -74,14 +69,14 @@ func main() { // nolint:gocyclo
 		panic(err)
 	}
 
-	checker, err := health.NewChecker(&health.Checks{
-		DB: &health.Check{
+	checker, err := health.NewChecker([]*health.Check{
+		{
 			Name:    "mysql",
 			Checker: db,
 		},
-		Cache: &health.Check{
+		{
 			Name:    "redis",
-			Checker: redisClient,
+			Checker: cache,
 		},
 	})
 	if err != nil {
@@ -104,6 +99,4 @@ func main() { // nolint:gocyclo
 	if err := http.ListenAndServe(addr, router); err != nil {
 		panic(err)
 	}
-
-	logger.Flush()
 }

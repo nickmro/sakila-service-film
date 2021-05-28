@@ -7,9 +7,3 @@ type Check struct {
 	Name    string
 	Checker health.ICheckable
 }
-
-// Checks are the health checks.
-type Checks struct {
-	DB    *Check
-	Cache *Check
-}
